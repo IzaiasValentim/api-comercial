@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "USERS")
-public class BaseUser {
+@Table(name = "USUARIOS")
+public class UsuarioBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -20,19 +20,19 @@ public class BaseUser {
     private String password;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "tb_users_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
+            name = "tb_usuarios_roles",
+            joinColumns = @JoinColumn(name = "usuario_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public BaseUser(String username, String CPF, String email, String password) {
+    public UsuarioBase(String username, String CPF, String email, String password) {
         this.username = username;
         this.CPF = CPF;
         this.email = email;
         this.password = password;
     }
 
-    public BaseUser() {
+    public UsuarioBase() {
     }
 
     public long getId() {

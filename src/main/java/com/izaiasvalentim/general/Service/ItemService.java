@@ -19,13 +19,13 @@ import jakarta.transaction.Transactional;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-    private final ResourceService resourceService;
+    private final ItemAgregadoService itemAgregadoService;
 
 
     @Autowired
-    public ItemService(ItemRepository itemRepository, ResourceService resourceService) {
+    public ItemService(ItemRepository itemRepository, ItemAgregadoService itemAgregadoService) {
         this.itemRepository = itemRepository;
-        this.resourceService = resourceService;
+        this.itemAgregadoService = itemAgregadoService;
     }
 
     @Transactional
@@ -39,7 +39,7 @@ public class ItemService {
             var savedItem = itemRepository.save(item);
             ItemUtils.generateItemBatch(savedItem);
 
-            resourceService.createResourceAfterInitialItem(savedItem);
+            itemAgregadoService.createResourceAfterInitialItem(savedItem);
 
             itemRepository.save(savedItem);
 
@@ -68,7 +68,7 @@ public class ItemService {
                 var savedItem = itemRepository.save(newItem);
                 ItemUtils.generateItemBatch(savedItem);
 
-                resourceService.updateResourceAfterChangedItemStock(savedItem);
+                itemAgregadoService.updateResourceAfterChangedItemStock(savedItem);
 
                 itemRepository.save(savedItem);
 
@@ -91,7 +91,7 @@ public class ItemService {
             var batchToDelete = itemRepository.findByBatch(batch).orElse(null);
             if (batchToDelete != null) {
                 batchToDelete.setDeleted(true);
-                resourceService.updateResourceAfterChangedItemStock(batchToDelete);
+                itemAgregadoService.updateResourceAfterChangedItemStock(batchToDelete);
                 itemRepository.delete(batchToDelete);
                 return true;
             } else {

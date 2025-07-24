@@ -11,54 +11,54 @@ import org.springframework.stereotype.Service;
 
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceAlreadyExistsException;
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceNotFoundException;
-import com.izaiasvalentim.general.Domain.Client;
+import com.izaiasvalentim.general.Domain.Cliente;
 import com.izaiasvalentim.general.Domain.DTO.Client.ClientDTO;
 import com.izaiasvalentim.general.Domain.DTO.Client.ClientRegisterDTO;
-import com.izaiasvalentim.general.Repository.ClientRepository;
+import com.izaiasvalentim.general.Repository.ClienteRepository;
 
 @Service
-public class ClientService {
+public class ClienteService {
 
-    private final ClientRepository clientRepository;
+    private final ClienteRepository clienteRepository;
 
     @Autowired
-    public ClientService(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
+    public ClienteService(ClienteRepository clienteRepository) {
+        this.clienteRepository = clienteRepository;
     }
 
     public void requestRegistration(ClientRegisterDTO clientDTO) {
 
-        if (clientRepository.findByIdentificationNumber(clientDTO.getIdentificationNumber()).isPresent()) {
+        if (clienteRepository.findByIdentificationNumber(clientDTO.getIdentificationNumber()).isPresent()) {
             throw new ResourceAlreadyExistsException("Já existe um cliente com este mesmo CPF.");
         }
 
-        Client clientToRegister = clientDTO.registerDTOToClient();
-        clientToRegister.setDeleted(false);
-        clientRepository.save(clientToRegister);
+        Cliente clienteToRegister = clientDTO.registerDTOToClient();
+        clienteToRegister.setDeleted(false);
+        clienteRepository.save(clienteToRegister);
 
     }
 
     public ClientRegisterDTO approveClientRegistration(String identificationNumber) {
-        Client clientToApprove = clientRepository
+        Cliente clienteToApprove = clienteRepository
                 .findByIdentificationNumber(identificationNumber)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(
                                 "Cliente com este CPF não existe."));
 
-        clientToApprove.setActive(true);
-        clientRepository.save(clientToApprove);
-        return new ClientRegisterDTO(clientToApprove);
+        clienteToApprove.setActive(true);
+        clienteRepository.save(clienteToApprove);
+        return new ClientRegisterDTO(clienteToApprove);
     }
 
     public List<ClientDTO> findClientsByNameAndStatus(String name, Boolean active) {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Client> clients = clientRepository.findDistinctByNameContainingAndActive(name, active, pageable);
+        Page<Cliente> clients = clienteRepository.findDistinctByNameContainingAndActive(name, active, pageable);
 
         return clients.getContent().stream().map(ClientDTO::new).collect(Collectors.toList());
     }
 
-    public Client findByIdentificationNumber(String identificationNumber) {
-        return clientRepository
+    public Cliente findByIdentificationNumber(String identificationNumber) {
+        return clienteRepository
                 .findByIdentificationNumber(identificationNumber)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(
@@ -66,43 +66,43 @@ public class ClientService {
     }
 
     public void updateRegistration(ClientRegisterDTO clientDTO) {
-        Client existingClient = clientRepository
+        Cliente existingCliente = clienteRepository
                 .findByIdentificationNumber(clientDTO.getIdentificationNumber())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Nenhum cliente encontrado com o CPF fornecido."));
 
         if (clientDTO.getName() != null) {
-            existingClient.setName(clientDTO.getName());
+            existingCliente.setName(clientDTO.getName());
         }
 
         if (clientDTO.getEmail() != null) {
-            existingClient.setEmail(clientDTO.getEmail());
+            existingCliente.setEmail(clientDTO.getEmail());
         }
         if (clientDTO.getAddress() != null) {
-            existingClient.setAddress(clientDTO.getAddress());
+            existingCliente.setAddress(clientDTO.getAddress());
         }
         if (clientDTO.getPhoneNumber() != null) {
-            existingClient.setPhoneNumber(clientDTO.getPhoneNumber());
+            existingCliente.setPhoneNumber(clientDTO.getPhoneNumber());
         }
         if (clientDTO.getPhoneNumberReserve() != null) {
-            existingClient.setPhoneNumberReserve(clientDTO.getPhoneNumberReserve());
+            existingCliente.setPhoneNumberReserve(clientDTO.getPhoneNumberReserve());
         }
         if (clientDTO.getPayment() != null) {
-            existingClient.setPayment(clientDTO.getPayment());
+            existingCliente.setPayment(clientDTO.getPayment());
         }
 
-        clientRepository.save(existingClient);
+        clienteRepository.save(existingCliente);
     }
 
     public void logicalDeleteClient(String identificationNumber) {
-        Client clientToDelete = clientRepository
+        Cliente clienteToDelete = clienteRepository
                 .findByIdentificationNumber(identificationNumber)
                 .orElseThrow(
                         () -> new ResourceNotFoundException(
                                 "Nenhum cliente encontrado com o CPF fornecido."));
 
-        clientToDelete.setActive(false);
-        clientToDelete.setDeleted(true);
-        clientRepository.save(clientToDelete);
+        clienteToDelete.setActive(false);
+        clienteToDelete.setDeleted(true);
+        clienteRepository.save(clienteToDelete);
     }
 }

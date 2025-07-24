@@ -1,12 +1,12 @@
 package com.izaiasvalentim.general.Repository;
 
-import com.izaiasvalentim.general.Domain.Resource;
+import com.izaiasvalentim.general.Domain.ItemAgregado;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface ResourceRepository extends JpaRepository<Resource, Long> {
-    Optional<Resource> findByItemCode(String code);
+public interface ItemAgregadoRepository extends JpaRepository<ItemAgregado, Long> {
+    Optional<ItemAgregado> findByItemCode(String code);
 }

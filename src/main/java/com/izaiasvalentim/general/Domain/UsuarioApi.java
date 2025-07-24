@@ -6,13 +6,13 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "API_USER")
-public class ApiUser {
+@Table(name = "USUARIO_API")
+public class UsuarioApi {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private BaseUser user;
+    private UsuarioBase user;
     private String phone;
     private String address;
     @Temporal(TemporalType.DATE)
@@ -23,8 +23,8 @@ public class ApiUser {
     private Boolean isActive;
     private Boolean isDeleted;
 
-    public ApiUser(String email, String username, String CPF, String phone, String address,
-                   LocalDate admissionDate, LocalDate shutdowsDate, Boolean isActive, Boolean isDeleted) {
+    public UsuarioApi(String email, String username, String CPF, String phone, String address,
+                      LocalDate admissionDate, LocalDate shutdowsDate, Boolean isActive, Boolean isDeleted) {
         this.phone = phone;
         this.address = address;
         this.admissionDate = admissionDate;
@@ -33,7 +33,7 @@ public class ApiUser {
         this.isDeleted = isDeleted;
     }
 
-    public ApiUser() {
+    public UsuarioApi() {
     }
     public long getId() {
         return id;
@@ -43,11 +43,11 @@ public class ApiUser {
         this.id = id;
     }
 
-    public BaseUser getUser() {
+    public UsuarioBase getUser() {
         return user;
     }
 
-    public void setUser(BaseUser user) {
+    public void setUser(UsuarioBase user) {
         this.user = user;
     }
 

@@ -1,7 +1,7 @@
 package com.izaiasvalentim.general.Controller;
 
-import com.izaiasvalentim.general.Domain.Company;
-import com.izaiasvalentim.general.Service.CompanyService;
+import com.izaiasvalentim.general.Domain.Companhia;
+import com.izaiasvalentim.general.Service.CompanhiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,37 +10,37 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "api/company")
-public class CompanyController {
+public class CompanhiaController {
 
-    private final CompanyService companyService;
+    private final CompanhiaService companhiaService;
 
     @Autowired
-    public CompanyController(CompanyService companyService) {
-        this.companyService = companyService;
+    public CompanhiaController(CompanhiaService companhiaService) {
+        this.companhiaService = companhiaService;
     }
 
     @GetMapping
     public ResponseEntity<?> getCompany() {
-        return ResponseEntity.ok(companyService.getCompany());
+        return ResponseEntity.ok(companhiaService.getCompany());
     }
 
     @PostMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_ADMINISTRATOR')")
-    public ResponseEntity<?> addCompany(@RequestBody Company company) {
-        var savedCompany = companyService.createCompany(company);
+    public ResponseEntity<?> addCompany(@RequestBody Companhia companhia) {
+        var savedCompany = companhiaService.createCompany(companhia);
         return new ResponseEntity<>(savedCompany, HttpStatus.CREATED);
     }
 
     @PutMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_ADMINISTRATOR')")
-    public ResponseEntity<?> updateCompany(@RequestBody Company company) {
-        return new ResponseEntity<>(companyService.updateCompany(company), HttpStatus.OK);
+    public ResponseEntity<?> updateCompany(@RequestBody Companhia companhia) {
+        return new ResponseEntity<>(companhiaService.updateCompany(companhia), HttpStatus.OK);
     }
 
     @DeleteMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_ADMINISTRATOR')")
     public ResponseEntity<?> deleteCompany() {
-        companyService.deleteCompany();
+        companhiaService.deleteCompany();
         return ResponseEntity.ok().build();
     }
 }

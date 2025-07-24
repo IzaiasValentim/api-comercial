@@ -3,7 +3,7 @@ package com.izaiasvalentim.general.Controller;
 import com.izaiasvalentim.general.Domain.DTO.Client.ClientDTO;
 import com.izaiasvalentim.general.Domain.DTO.Client.ClientIdentification;
 import com.izaiasvalentim.general.Domain.DTO.Client.ClientRegisterDTO;
-import com.izaiasvalentim.general.Service.ClientService;
+import com.izaiasvalentim.general.Service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,19 +14,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/clients")
-public class ClientController {
+public class ClienteController {
 
-    private final ClientService clientService;
+    private final ClienteService clienteService;
 
     @Autowired
-    public ClientController(ClientService clientService) {
-        this.clientService = clientService;
+    public ClienteController(ClienteService clienteService) {
+        this.clienteService = clienteService;
     }
 
     @PostMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<?> registerClient(@RequestBody ClientRegisterDTO clientRegisterDTO) {
-        clientService.requestRegistration(clientRegisterDTO);
+        clienteService.requestRegistration(clientRegisterDTO);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -34,14 +34,14 @@ public class ClientController {
     @PreAuthorize("hasAuthority('SCOPE_MANAGER')")
     public ResponseEntity<?> approveClient(@RequestBody ClientIdentification identificationNumber) {
         System.out.println(identificationNumber);
-        ClientRegisterDTO clientToReturn = clientService.approveClientRegistration(identificationNumber.identificationNumber());
+        ClientRegisterDTO clientToReturn = clienteService.approveClientRegistration(identificationNumber.identificationNumber());
         return new ResponseEntity<>(clientToReturn, HttpStatus.OK);
     }
 
     @GetMapping("findByNameAndStatus")
     @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<?> findClientsByNameAndStatus(@RequestParam String name, @RequestParam Boolean status) {
-        List<ClientDTO> returnList = clientService.findClientsByNameAndStatus(name, status);
+        List<ClientDTO> returnList = clienteService.findClientsByNameAndStatus(name, status);
 
         return new ResponseEntity<>(returnList, HttpStatus.OK);
     }
@@ -49,20 +49,20 @@ public class ClientController {
     @GetMapping("findByIdentificationNumber")
     @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<?> findByIdentificationNumber(@RequestParam String identificationNumber) {
-        return new ResponseEntity<>(clientService.findByIdentificationNumber(identificationNumber), HttpStatus.OK);
+        return new ResponseEntity<>(clienteService.findByIdentificationNumber(identificationNumber), HttpStatus.OK);
     }
 
     @PutMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<?> updateClient(@RequestBody ClientRegisterDTO clientRegisterDTO) {
-        clientService.updateRegistration(clientRegisterDTO);
+        clienteService.updateRegistration(clientRegisterDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/")
     @PreAuthorize("hasAuthority('SCOPE_MANAGER')")
     public ResponseEntity<?> deleteClient(@RequestParam String identificationNumber) {
-        clientService.logicalDeleteClient(identificationNumber);
+        clienteService.logicalDeleteClient(identificationNumber);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

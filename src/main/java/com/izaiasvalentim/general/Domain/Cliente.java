@@ -6,8 +6,8 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "Clients")
-public class Client {
+@Table(name = "Clientes")
+public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -23,18 +23,18 @@ public class Client {
     private String phoneNumberReserve;
     @Column(nullable = false)
     private String payment;
-    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<Purchase> allPurchases;
+    private List<Venda> allPurchases;
     private Boolean active;
     private Boolean isDeleted;
 
-    public Client() {
+    public Cliente() {
 
     }
 
-    public Client(String name, String email, String identificationNumber, String address, String phoneNumber,
-                  String phoneNumberReserve, String payment, Boolean isDeleted) {
+    public Cliente(String name, String email, String identificationNumber, String address, String phoneNumber,
+                   String phoneNumberReserve, String payment, Boolean isDeleted) {
         this.name = name;
         this.email = email;
         this.identificationNumber = identificationNumber;
@@ -44,6 +44,14 @@ public class Client {
         this.payment = payment;
         this.active = false;
         this.isDeleted = isDeleted;
+    }
+
+    public String getPayment() {
+        return payment;
+    }
+
+    public void setPayment(String payment) {
+        this.payment = payment;
     }
 
     public Integer getId() {
@@ -102,19 +110,11 @@ public class Client {
         this.phoneNumberReserve = phoneNumberReserve;
     }
 
-    public String getPayment() {
-        return payment;
-    }
-
-    public void setPayment(String payment) {
-        this.payment = payment;
-    }
-
-    public List<Purchase> getAllPurchases() {
+    public List<Venda> getAllPurchases() {
         return allPurchases;
     }
 
-    public void setAllPurchases(List<Purchase> allPurchases) {
+    public void setAllPurchases(List<Venda> allPurchases) {
         this.allPurchases = allPurchases;
     }
 

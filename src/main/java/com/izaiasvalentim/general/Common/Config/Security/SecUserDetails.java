@@ -1,6 +1,6 @@
 package com.izaiasvalentim.general.Common.Config.Security;
 
-import com.izaiasvalentim.general.Domain.BaseUser;
+import com.izaiasvalentim.general.Domain.UsuarioBase;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,15 +10,15 @@ import java.util.stream.Collectors;
 
 public class SecUserDetails implements UserDetails {
 
-    private final BaseUser baseUser;
+    private final UsuarioBase usuarioBase;
 
-    public SecUserDetails(BaseUser baseUser) {
-        this.baseUser = baseUser;
+    public SecUserDetails(UsuarioBase usuarioBase) {
+        this.usuarioBase = usuarioBase;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return baseUser
+        return usuarioBase
                 .getRoles()
                 .stream()
                 .map(role ->
@@ -27,11 +27,11 @@ public class SecUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return baseUser.getPassword();
+        return usuarioBase.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return baseUser.getUsername();
+        return usuarioBase.getUsername();
     }
 }

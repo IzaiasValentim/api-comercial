@@ -2,7 +2,7 @@ package com.izaiasvalentim.general.Service;
 
 import com.izaiasvalentim.general.Common.Config.Jwt.JwtService;
 import com.izaiasvalentim.general.Common.Config.Security.SecUserDetails;
-import com.izaiasvalentim.general.Domain.BaseUser;
+import com.izaiasvalentim.general.Domain.UsuarioBase;
 import com.izaiasvalentim.general.Domain.DTO.ApiUser.ResponseRefreshTokenDTO;
 import com.izaiasvalentim.general.Domain.RefreshToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ public class AuthenticationService {
     public ResponseRefreshTokenDTO refreshToken(String refreshToken) {
         RefreshToken newRefreshToken = refreshTokenService.validateTokenRenewal(refreshToken);
 
-        BaseUser user = newRefreshToken.getUser();
+        UsuarioBase user = newRefreshToken.getUser();
         SecUserDetails userDetails = new SecUserDetails(user);
 
         Authentication authentication =

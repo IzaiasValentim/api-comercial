@@ -1,6 +1,6 @@
 package com.izaiasvalentim.general.Domain.DTO.ApiUser;
 
-import com.izaiasvalentim.general.Domain.ApiUser;
+import com.izaiasvalentim.general.Domain.UsuarioApi;
 import com.izaiasvalentim.general.Domain.Role;
 
 import java.time.LocalDate;
@@ -18,16 +18,16 @@ public class ApiUserReturnDTO {
     private Boolean isDeleted;
     private Set<Role> roles = new HashSet<>();
 
-    public ApiUserReturnDTO(ApiUser apiUser) {
-        this.username = apiUser.getUser().getUsername();
-        this.email = apiUser.getUser().getEmail();
-        this.phone = apiUser.getPhone();
-        this.address = apiUser.getAddress();
-        this.admissionDate = apiUser.getAdmissionDate();
-        this.isAdmin = apiUser.getAdmin();
-        this.isActive = apiUser.getIsActive();
-        this.isDeleted = apiUser.getDeleted();
-        this.setRoles(apiUser.getUser().getRoles());
+    public ApiUserReturnDTO(UsuarioApi usuarioApi) {
+        this.username = usuarioApi.getUser().getUsername();
+        this.email = usuarioApi.getUser().getEmail();
+        this.phone = usuarioApi.getPhone();
+        this.address = usuarioApi.getAddress();
+        this.admissionDate = usuarioApi.getAdmissionDate();
+        this.isAdmin = usuarioApi.getAdmin();
+        this.isActive = usuarioApi.getIsActive();
+        this.isDeleted = usuarioApi.getDeleted();
+        this.setRoles(usuarioApi.getUser().getRoles());
     }
 
     public String getUsername() {

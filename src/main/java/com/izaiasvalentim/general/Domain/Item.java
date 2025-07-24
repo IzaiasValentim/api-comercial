@@ -23,9 +23,9 @@ public class Item {
     private Boolean hasValidity;
     private boolean isDeleted;
     @ManyToOne
-    @JoinColumn(name = "resource_id")
+    @JoinColumn(name = "item_agregado_id")
     @JsonBackReference
-    private Resource resource;
+    private ItemAgregado itemAgregado;
 
     public Item(String name, String type, Double price, Double quantity, String batch, String code,
                 Date validity, Boolean hasValidity, boolean isDeleted) {
@@ -123,12 +123,12 @@ public class Item {
         isDeleted = deleted;
     }
 
-    public Resource getResource() {
-        return resource;
+    public ItemAgregado getItemAgregado() {
+        return itemAgregado;
     }
 
-    public void setResource(Resource resource) {
-        this.resource = resource;
+    public void setItemAgregado(ItemAgregado itemAgregado) {
+        this.itemAgregado = itemAgregado;
     }
 
     public static Item itemDTOToItem(ItemDTO dto) {

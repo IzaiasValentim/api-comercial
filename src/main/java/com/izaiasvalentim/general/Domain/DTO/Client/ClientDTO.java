@@ -1,6 +1,6 @@
 package com.izaiasvalentim.general.Domain.DTO.Client;
 
-import com.izaiasvalentim.general.Domain.Client;
+import com.izaiasvalentim.general.Domain.Cliente;
 
 public class ClientDTO {
     private String name;
@@ -27,23 +27,23 @@ public class ClientDTO {
         this.isDeleted = false;
     }
 
-    public ClientDTO(Client client) {
-        this.name = client.getName();
-        this.email = client.getEmail();
-        this.identificationNumber = client.getIdentificationNumber();
-        this.address = client.getAddress();
-        this.phoneNumber = client.getPhoneNumber();
-        this.phoneNumberReserve = client.getPhoneNumberReserve();
-        if (client.getActive()) {
+    public ClientDTO(Cliente cliente) {
+        this.name = cliente.getName();
+        this.email = cliente.getEmail();
+        this.identificationNumber = cliente.getIdentificationNumber();
+        this.address = cliente.getAddress();
+        this.phoneNumber = cliente.getPhoneNumber();
+        this.phoneNumberReserve = cliente.getPhoneNumberReserve();
+        if (cliente.getActive()) {
             status = "Active";
         } else {
             status = "Inactive";
         }
-        this.isDeleted = client.getDeleted();
+        this.isDeleted = cliente.getDeleted();
     }
 
-    public Client registerDTOToClient() {
-        return new Client(name, email, identificationNumber, address, phoneNumber, phoneNumberReserve,
+    public Cliente registerDTOToClient() {
+        return new Cliente(name, email, identificationNumber, address, phoneNumber, phoneNumberReserve,
                 "", isDeleted);
     }
 

@@ -1,28 +1,41 @@
 package com.izaiasvalentim.general.Domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.izaiasvalentim.general.Domain.Enums.TypePurchaseStatus;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.izaiasvalentim.general.Domain.Enums.TypePurchaseStatus;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
+
 @Entity
-public class Purchase {
+public class Venda {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private Double total;
     private String paymentMethod;
-    @OneToOne
-    @JoinColumn(name = "apiUser_id")
-    private ApiUser seller;
+    @ManyToOne
+    @JoinColumn(name = "usuarioApi_id", referencedColumnName = "id")
+    private UsuarioApi seller;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="client_id", referencedColumnName = "id")
+    @JoinColumn(name="cliente_id", referencedColumnName = "id")
     @JsonBackReference
-    private Client client;
+    private Cliente cliente;
     @Column(name = "status_id")
     private int status;
     @Temporal(TemporalType.TIMESTAMP)
@@ -30,23 +43,23 @@ public class Purchase {
     @Temporal(TemporalType.TIMESTAMP)
     private Date hiredDate;
     private Boolean isDeleted;
-    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<PurchaseItem> purchaseItems;
+    private List<ItemCompra> itemCompras;
 
-    public Purchase(Double total, String paymentMethod, ApiUser seller, Client client, int status,
-                    Date realizationDate, Date hiredDate, Boolean isDeleted) {
+    public Venda(Double total, String paymentMethod, UsuarioApi seller, Cliente cliente, int status,
+                 Date realizationDate, Date hiredDate, Boolean isDeleted) {
         this.total = total;
         this.paymentMethod = paymentMethod;
         this.seller = seller;
-        this.client = client;
+        this.cliente = cliente;
         this.status = status;
         this.realizationDate = realizationDate;
         this.hiredDate = hiredDate;
         this.isDeleted = isDeleted;
     }
 
-    public Purchase() {
+    public Venda() {
     }
 
     public UUID getId() {
@@ -73,20 +86,20 @@ public class Purchase {
         this.paymentMethod = paymentMethod;
     }
 
-    public ApiUser getSeller() {
+    public UsuarioApi getSeller() {
         return seller;
     }
 
-    public void setSeller(ApiUser seller) {
+    public void setSeller(UsuarioApi seller) {
         this.seller = seller;
     }
 
-    public Client getClient() {
-        return client;
+    public Cliente getClient() {
+        return cliente;
     }
 
-    public void setClient(Client client) {
-        this.client = client;
+    public void setClient(Cliente cliente) {
+        this.cliente = cliente;
     }
 
     @Transient
@@ -126,11 +139,11 @@ public class Purchase {
         isDeleted = deleted;
     }
 
-    public List<PurchaseItem> getPurchaseItems() {
-        return purchaseItems;
+    public List<ItemCompra> getPurchaseItems() {
+        return itemCompras;
     }
 
-    public void setPurchaseItems(List<PurchaseItem> purchaseItems) {
-        this.purchaseItems = purchaseItems;
+    public void setPurchaseItems(List<ItemCompra> itemCompras) {
+        this.itemCompras = itemCompras;
     }
 }

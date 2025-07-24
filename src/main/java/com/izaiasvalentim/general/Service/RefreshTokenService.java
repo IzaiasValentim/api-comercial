@@ -12,22 +12,22 @@ import com.izaiasvalentim.general.Common.CustomExceptions.RefreshTokenExpiredExc
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceAlreadyExistsException;
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceNotFoundException;
 import static com.izaiasvalentim.general.Common.utils.TimeUtils.getCurrentTimeTruncatedInSeconds;
-import com.izaiasvalentim.general.Domain.BaseUser;
+import com.izaiasvalentim.general.Domain.UsuarioBase;
 import com.izaiasvalentim.general.Domain.RefreshToken;
-import com.izaiasvalentim.general.Repository.BaseUserRepository;
+import com.izaiasvalentim.general.Repository.UsuarioBaseRepository;
 import com.izaiasvalentim.general.Repository.RefreshTokenRepository;
 
 @Service
 public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
-    private final BaseUserRepository baseUserRepository;
+    private final UsuarioBaseRepository usuarioBaseRepository;
     @Value("${tokens.expiration.refresh.exp}")
     private Integer refreshTokenExpiresInSeconds;
 
     @Autowired
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, BaseUserRepository baseUserRepository) {
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, UsuarioBaseRepository usuarioBaseRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
-        this.baseUserRepository = baseUserRepository;
+        this.usuarioBaseRepository = usuarioBaseRepository;
     }
 
     public RefreshToken validateTokenRenewal(String token) {
@@ -49,19 +49,19 @@ public class RefreshTokenService {
 
     public String createRefreshToken(String username) {
         try {
-            BaseUser baseUser = baseUserRepository
+            UsuarioBase usuarioBase = usuarioBaseRepository
                     .findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
 
             RefreshToken refreshToken = refreshTokenRepository
-                    .findByUser(baseUser)
+                    .findByUser(usuarioBase)
                     .orElse(null);
 
             Instant now = getCurrentTimeTruncatedInSeconds();
 
             if (refreshToken == null) {
                 refreshToken = new RefreshToken();
-                refreshToken.setUser(baseUser);
+                refreshToken.setUser(usuarioBase);
                 refreshToken.setExpiryDate(now.plusSeconds(refreshTokenExpiresInSeconds));
                 refreshToken.setToken(UUID.randomUUID().toString().toUpperCase());
 

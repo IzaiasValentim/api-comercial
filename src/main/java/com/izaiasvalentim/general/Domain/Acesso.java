@@ -5,22 +5,22 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-public class Access {
+public class Acesso {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
     @OneToOne
-    @JoinColumn(name = "apiUser_id")
-    private ApiUser user;
+    @JoinColumn(name = "usuarioApi_id")
+    private UsuarioApi user;
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 
-    public Access(ApiUser user, Date date) {
+    public Acesso(UsuarioApi user, Date date) {
         this.user = user;
         this.date = date;
     }
 
-    public Access() {
+    public Acesso() {
     }
 
     public long getId() {
@@ -31,11 +31,11 @@ public class Access {
         this.id = id;
     }
 
-    public ApiUser getUser() {
+    public UsuarioApi getUser() {
         return user;
     }
 
-    public void setUser(ApiUser user) {
+    public void setUser(UsuarioApi user) {
         this.user = user;
     }
 

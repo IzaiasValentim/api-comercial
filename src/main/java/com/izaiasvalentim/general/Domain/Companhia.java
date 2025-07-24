@@ -3,7 +3,7 @@ package com.izaiasvalentim.general.Domain;
 import jakarta.persistence.*;
 
 @Entity
-public class Company {
+public class Companhia {
     @Id
     private int id;
     @Column(unique = true)
@@ -11,14 +11,15 @@ public class Company {
     private String brach;
     private String address;
     private String typeOfService;
-    public Company(String name, String brach, String address, String typeOfService) {
+
+    public Companhia(String name, String brach, String address, String typeOfService) {
         this.name = name;
         this.brach = brach;
         this.address = address;
         this.typeOfService = typeOfService;
     }
 
-    public Company() {
+    public Companhia() {
     }
 
     public int getId() {

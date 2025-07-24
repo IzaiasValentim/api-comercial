@@ -9,20 +9,20 @@ import com.izaiasvalentim.general.Common.CustomExceptions.ErrorInProcessServiceE
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceAlreadyExistsException;
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceNotFoundException;
 import com.izaiasvalentim.general.Domain.Item;
-import com.izaiasvalentim.general.Domain.Resource;
+import com.izaiasvalentim.general.Domain.ItemAgregado;
 import com.izaiasvalentim.general.Repository.ItemRepository;
-import com.izaiasvalentim.general.Repository.ResourceRepository;
+import com.izaiasvalentim.general.Repository.ItemAgregadoRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
-public class ResourceService {
+public class ItemAgregadoService {
 
-    private final ResourceRepository resourceRepository;
+    private final ItemAgregadoRepository resourceRepository;
     private final ItemRepository itemRepository;
 
     @Autowired
-    public ResourceService(ResourceRepository resourceRepository, ItemRepository itemRepository) {
+    public ItemAgregadoService(ItemAgregadoRepository resourceRepository, ItemRepository itemRepository) {
         this.resourceRepository = resourceRepository;
         this.itemRepository = itemRepository;
     }
@@ -35,14 +35,14 @@ public class ResourceService {
                         "A mercadoria não pode ser registrada.");
             }
 
-            Resource newResource = new Resource();
-            newResource.setItems(List.of(item));
-            newResource.setItemCode();
-            newResource.setName();
-            newResource.setStock(item.getQuantity());
+            ItemAgregado newItemAgregado = new ItemAgregado();
+            newItemAgregado.setItems(List.of(item));
+            newItemAgregado.setItemCode();
+            newItemAgregado.setName();
+            newItemAgregado.setStock(item.getQuantity());
 
-            var savedResource = resourceRepository.save(newResource);
-            item.setResource(savedResource);
+            var savedResource = resourceRepository.save(newItemAgregado);
+            item.setItemAgregado(savedResource);
         } catch (Exception e) {
             throw new ErrorInProcessServiceException("Erro ao tentar criar mercadoria do item. " + e.getMessage());
         }
@@ -63,7 +63,7 @@ public class ResourceService {
             resourceToUpdate.setStock(calculateTotalStockOfItems(newListItems));
 
             var updatedResource = resourceRepository.save(resourceToUpdate);
-            item.setResource(updatedResource);
+            item.setItemAgregado(updatedResource);
         } catch (Exception e) {
             throw new ErrorInProcessServiceException("Error while creating resource after item. " + e.getMessage());
         }

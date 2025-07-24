@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-public class Communication {
+public class Comunicado {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
@@ -17,7 +17,7 @@ public class Communication {
     private LocalDate endDate;
     private Boolean isDeleted;
 
-    public Communication(String message, int scope, LocalDate creationDate, LocalDate endDate, Boolean isDeleted) {
+    public Comunicado(String message, int scope, LocalDate creationDate, LocalDate endDate, Boolean isDeleted) {
         this.message = message;
         this.scope = scope;
         this.creationDate = creationDate;
@@ -25,7 +25,7 @@ public class Communication {
         this.isDeleted = isDeleted;
     }
 
-    public Communication() {
+    public Comunicado() {
     }
 
     public long getId() {
