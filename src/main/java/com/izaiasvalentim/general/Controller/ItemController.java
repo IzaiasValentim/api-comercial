@@ -32,6 +32,14 @@ public class ItemController {
         return new ResponseEntity<>(listItems, HttpStatus.OK);
     }
 
+    // IMPLEMENTAR ESTÁ INCOMPLETOOOOOOOOO!
+    @GetMapping(value = "itemStockByCode")
+    public ResponseEntity<?> getItemStockByCode(@RequestParam String code) {
+        var listItems = itemService.getAllItemsByName(code);
+
+        return new ResponseEntity<>(listItems, HttpStatus.OK);
+    }
+
     @PostMapping(value = "/")
     @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN')")
     public ResponseEntity<?> addItem(@RequestBody ItemDTO dto) {
