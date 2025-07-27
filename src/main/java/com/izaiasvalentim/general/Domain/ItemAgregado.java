@@ -6,13 +6,14 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "item_agregado")
 public class ItemAgregado {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
     @Column(nullable = false, name = "item_name")
     private String name;
-    @OneToMany(mappedBy = "itemAgregado", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "itemAgregado", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Item> items;
     private String itemCode;

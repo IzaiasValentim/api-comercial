@@ -40,8 +40,8 @@ tokens:
     refresh:
       exp: ${REFRESH_T}
 
-logging:
-  level:
-    org.springframework.jdbc.datasource.init: DEBUG # Exibe informações sobre a execução dos scripts
-    org.springframework.boot.autoconfigure.orm.jpa: DEBUG # Pode dar pistas sobre a inicialização do JPA
-    org.hibernate.SQL: DEBUG # Você já tem este, mas é bom para ver o DDL
+#logging:
+#  level:
+#    org.springframework.jdbc.datasource.init: DEBUG # Exibe informações sobre a execução dos scripts
+#    org.springframework.boot.autoconfigure.orm.jpa: DEBUG # Pode dar pistas sobre a inicialização do JPA
+#    org.hibernate.SQL: DEBUG # Você já tem este, mas é bom para ver o DDL

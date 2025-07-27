@@ -12,4 +12,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Optional<Item> findByBatch(String batch);
 
     Optional<List<Item>> findAllByName(String name);
+
+    Optional<List<Item>> findAllByCode(String cdode);
 }

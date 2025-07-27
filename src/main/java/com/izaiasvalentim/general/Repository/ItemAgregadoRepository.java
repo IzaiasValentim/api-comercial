@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface ItemAgregadoRepository extends JpaRepository<ItemAgregado, Long> {
     Optional<ItemAgregado> findByItemCode(String code);
+    Optional<ItemAgregado> findByNameContaining(String name);
 }

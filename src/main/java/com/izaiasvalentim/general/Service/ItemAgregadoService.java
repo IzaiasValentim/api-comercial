@@ -1,19 +1,22 @@
 package com.izaiasvalentim.general.Service;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.izaiasvalentim.general.Common.CustomExceptions.ErrorInProcessServiceException;
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceAlreadyExistsException;
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceNotFoundException;
+import com.izaiasvalentim.general.Domain.DTO.Item.ItemAgregadoResponseDTO;
 import com.izaiasvalentim.general.Domain.Item;
 import com.izaiasvalentim.general.Domain.ItemAgregado;
-import com.izaiasvalentim.general.Repository.ItemRepository;
 import com.izaiasvalentim.general.Repository.ItemAgregadoRepository;
-
+import com.izaiasvalentim.general.Repository.ItemRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemAgregadoService {
@@ -82,4 +85,18 @@ public class ItemAgregadoService {
         return items.stream().map(Item::getQuantity).reduce(0.0, Double::sum);
     }
 
+    public List<ItemAgregadoResponseDTO> getAllItemsPaged(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<ItemAgregado> itemsAgregadosPage = resourceRepository.findAll(pageable);
+
+        return itemsAgregadosPage.stream()
+                .map(itemAgregado -> new ItemAgregadoResponseDTO(
+                        itemAgregado.getId(),
+                        itemAgregado.getName(),
+                        itemAgregado.getItems().getFirst().getPrice(),
+                        itemAgregado.getItemCode(),
+                        itemAgregado.getStock()
+                ))
+                .collect(Collectors.toList());
+    }
 }
