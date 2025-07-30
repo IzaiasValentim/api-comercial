@@ -34,8 +34,8 @@ public class ItemService {
     @Transactional
     public Item registerNewItem(Item item) {
         try {
-            if (itemRepository.findFirstByName(item.getName()).isPresent()) {
-                throw new ResourceAlreadyExistsException("Item de nome " + item.getName() + " já existe. " +
+            if (itemRepository.findFirstByName(item.getName()).isPresent() || itemRepository.findFirstByCode(item.getCode()).isPresent()) {
+                throw new ResourceAlreadyExistsException("Item de nome ou código já existe. " +
                         "Tente adicionar estoque para ele.");
             }
             item.setDeleted(false);
@@ -118,8 +118,8 @@ public class ItemService {
             var batchToDelete = itemRepository.findByBatch(batch).orElse(null);
             if (batchToDelete != null) {
                 batchToDelete.setDeleted(true);
+                batchToDelete.setQuantity(0.0);
                 itemAgregadoService.updateResourceAfterChangedItemStock(batchToDelete);
-                itemRepository.delete(batchToDelete);
                 return true;
             } else {
                 throw new ResourceNotFoundException("Item com nome " + batch + " não existe.");

@@ -8,10 +8,11 @@ import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
     Optional<Item> findFirstByName(String name);
+    Optional<Item> findFirstByCode(String code);
 
     Optional<Item> findByBatch(String batch);
 
     Optional<List<Item>> findAllByName(String name);
 
-    Optional<List<Item>> findAllByCode(String cdode);
+    Optional<List<Item>> findAllByCode(String code);
 }
