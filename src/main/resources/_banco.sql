@@ -1,6 +1,6 @@
 -- Criação do banco de dados
-CREATE DATABASE IF NOT EXISTS click_comercial;
-USE click_comercial;
+CREATE DATABASE IF NOT EXISTS db_clickcomercial;
+USE db_clickcomercial;
 
 -- Tabela para armazenar informações de clientes.
 -- 'id' é uma chave primária auto-incrementada.
