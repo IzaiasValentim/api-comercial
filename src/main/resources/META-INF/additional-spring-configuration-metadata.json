@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "tokens-expiration.access-expiration",
+      "type": "java.lang.Integer",
+      "description": "Description for tokens-expiration.access-expiration."
+    },
+    {
+      "name": "tokens-expiration.refresh-expiration",
+      "type": "java.lang.Integer",
+      "description": "Description for tokens-expiration.refresh-expiration."
+    }
+  ] }
