@@ -28,18 +28,17 @@ public class AuthenticationController {
     @PostMapping("authenticate/login/")
     public ResponseEntity<?> authenticate(@Valid @RequestBody UserAuthDTO userAuthDTO) {
         Authentication authentication = authenticationManager
-                .authenticate(
-                        new UsernamePasswordAuthenticationToken(userAuthDTO.getUsername(), userAuthDTO.getPassword())
-                );
+
+                .authenticate(new UsernamePasswordAuthenticationToken(userAuthDTO.getUsername(), userAuthDTO.getPassword()));
 
         ResponseRefreshTokenDTO tokenResponse = authenticationService.authenticate(authentication);
+
         return ResponseEntity.ok(tokenResponse);
     }
 
     @PostMapping("authenticate/refresh-token/")
     public ResponseEntity<?> refresh(@Valid @RequestBody RequestRefreshTokenDTO refreshTokenDTO) {
         ResponseRefreshTokenDTO tokenResponse = authenticationService.refreshToken(refreshTokenDTO.getRefreshToken());
-
         return ResponseEntity.ok(tokenResponse);
     }
 }

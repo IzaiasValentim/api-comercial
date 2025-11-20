@@ -1,7 +1,6 @@
 package com.izaiasvalentim.general.Domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.izaiasvalentim.general.Domain.DTO.Item.ItemDTO;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -11,34 +10,25 @@ public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
-    private String name;
-    private String type;
+
     private Double price;
+
     private Double quantity;
-    @Column(unique = true, nullable = true)
+
+    @Column(unique = true)
     private String batch;
-    private String code;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date validity;
-    private Boolean hasValidity;
-    private boolean isDeleted;
-    @ManyToOne
-    @JoinColumn(name = "item_agregado_id")
-    @JsonBackReference
-    private ItemAgregado itemAgregado;
 
-    public Item(String name, String type, Double price, Double quantity, String batch, String code,
-                Date validity, Boolean hasValidity, boolean isDeleted) {
-        this.name = name;
-        this.type = type;
-        this.price = price;
-        this.quantity = quantity;
-        this.batch = batch;
-        this.code = code;
-        this.validity = validity;
-        this.hasValidity = hasValidity;
-        this.isDeleted = isDeleted;
-    }
+    private Boolean hasValidity;
+
+    private Boolean deleted;
+
+    @ManyToOne
+    @JoinColumn(name = "produto_id", nullable = false)
+    @JsonBackReference
+    private Produto produto;
 
     public Item() {
     }
@@ -49,22 +39,6 @@ public class Item {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Double getPrice() {
@@ -91,14 +65,6 @@ public class Item {
         this.batch = batch;
     }
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
     public Date getValidity() {
         return validity;
     }
@@ -115,24 +81,19 @@ public class Item {
         this.hasValidity = hasValidity;
     }
 
-    public boolean isDeleted() {
-        return isDeleted;
+    public Boolean getDeleted() {
+        return deleted;
     }
 
-    public void setDeleted(boolean deleted) {
-        isDeleted = deleted;
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 
-    public ItemAgregado getItemAgregado() {
-        return itemAgregado;
+    public Produto getProduto() {
+        return produto;
     }
 
-    public void setItemAgregado(ItemAgregado itemAgregado) {
-        this.itemAgregado = itemAgregado;
-    }
-
-    public static Item itemDTOToItem(ItemDTO dto) {
-        return new Item(dto.name(), dto.type(), dto.price(), dto.quantity(), null, dto.code(), dto.validity(),
-                dto.hasValidity(), false);
+    public void setProduto(Produto produto) {
+        this.produto = produto;
     }
 }

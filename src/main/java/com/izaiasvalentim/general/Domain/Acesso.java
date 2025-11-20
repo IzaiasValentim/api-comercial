@@ -9,9 +9,11 @@ public class Acesso {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
+
     @OneToOne
     @JoinColumn(name = "usuarioApi_id")
     private UsuarioApi user;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 

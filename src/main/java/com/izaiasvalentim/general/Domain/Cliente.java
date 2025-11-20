@@ -11,22 +11,32 @@ public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     @Column(nullable = false)
     private String name;
+
     @Column(nullable = false)
     private String email;
+
     @Column(nullable = false, unique = true)
     private String identificationNumber;
+
     @Column(nullable = false)
     private String address;
+
     private String phoneNumber;
+
     private String phoneNumberReserve;
+
     @Column(nullable = false)
     private String payment;
+
     @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Venda> allPurchases;
+
     private Boolean active;
+
     private Boolean isDeleted;
 
     public Cliente() {
