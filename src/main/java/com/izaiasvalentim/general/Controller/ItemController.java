@@ -1,10 +1,9 @@
 package com.izaiasvalentim.general.Controller;
 
 import com.izaiasvalentim.general.Domain.DTO.Item.ItemAddStockDTO;
-import com.izaiasvalentim.general.Domain.DTO.Item.ItemAgregadoResponseDTO;
 import com.izaiasvalentim.general.Domain.DTO.Item.ItemDTO;
-import com.izaiasvalentim.general.Domain.Item;
-import com.izaiasvalentim.general.Service.ItemAgregadoService;
+import com.izaiasvalentim.general.Domain.DTO.Produto.ProdutoDetailDTO;
+import com.izaiasvalentim.general.Domain.DTO.Produto.ProdutoResponseDTO;
 import com.izaiasvalentim.general.Service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,72 +18,52 @@ import java.util.List;
 public class ItemController {
 
     private final ItemService itemService;
-    private final ItemAgregadoService itemAgregadoService;
 
     @Autowired
-    public ItemController(ItemService itemService, ItemAgregadoService itemAgregadoService) {
+    public ItemController(ItemService itemService) {
         this.itemService = itemService;
-        this.itemAgregadoService = itemAgregadoService;
     }
 
-    @GetMapping(value = "allByName")
-    @PreAuthorize(
-                    "hasAuthority('SCOPE_MANAGER') || " +
-                    "hasAuthority('SCOPE_SELLER') || " +
-                    "hasAuthority('SCOPE_INTERN') ")
-    public ResponseEntity<?> getAllItems(@RequestParam String name) {
-        var listItems = itemService.getAllItemsByName(name);
-
-        return new ResponseEntity<>(listItems, HttpStatus.OK);
-    }
-
-
-    @GetMapping(value = "itemStockByCode")
-    public ResponseEntity<?> getItemStockByCode(@RequestParam String code) {
-        var listItems = itemService.getItemStockByCode(code);
-
-        return new ResponseEntity<>(listItems, HttpStatus.OK);
-    }
-
-    @GetMapping(value = "itemStockByName")
-    public ResponseEntity<?> getItemStockByName(@RequestParam String name) {
-        var listItems = itemService.getItemStockByName(name);
-
-        return new ResponseEntity<>(listItems, HttpStatus.OK);
-    }
-
+    // 1. Listar Produtos (Paginado) - Substitui getAllAgregated
     @GetMapping("getAllAgregated")
-
-    public ResponseEntity<List<ItemAgregadoResponseDTO>> getAllItems(
+    public ResponseEntity<List<ProdutoResponseDTO>> getAllProducts(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "quantidade", defaultValue = "10") int quantidade) {
 
-        List<ItemAgregadoResponseDTO> items = itemAgregadoService.getAllItemsPaged(page, quantidade);
-        return new ResponseEntity<>(items, HttpStatus.OK);
+        return ResponseEntity.ok(itemService.getAllProductsPaged(page, quantidade));
     }
 
+    // 2. Detalhes do Produto (Com lotes) - Substitui itemStockByCode
+    @GetMapping(value = "itemStockByCode")
+    public ResponseEntity<ProdutoDetailDTO> getProductDetails(@RequestParam String code) {
+        return ResponseEntity.ok(itemService.getProductDetailsByCode(code));
+    }
+
+    // 3. Criar Novo Produto
     @PostMapping(value = "/")
     @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN')")
-    public ResponseEntity<?> addItem(@RequestBody ItemDTO dto) {
-        var item = Item.itemDTOToItem(dto);
-        var savedItem = itemService.registerNewItem(item);
-
-        return new ResponseEntity<>(savedItem, HttpStatus.CREATED);
+    public ResponseEntity<ProdutoResponseDTO> createProduct(@RequestBody ItemDTO dto) {
+        return new ResponseEntity<>(itemService.registerNewProduct(dto), HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "addStockByName/")
+    // 4. Adicionar Estoque
+    @PostMapping(value = "addStockByCode/")
     @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN')")
-    public ResponseEntity<?> addItemStockByName(@RequestBody ItemAddStockDTO dto) {
-        var savedItem = itemService.addItemStock(dto);
-        return new ResponseEntity<>(savedItem, HttpStatus.CREATED);
+    public ResponseEntity<ProdutoResponseDTO> addStock(@RequestBody ItemAddStockDTO dto) {
+        return new ResponseEntity<>(itemService.addStock(dto), HttpStatus.CREATED);
     }
 
+    // 5. Excluir Lote
     @DeleteMapping(value = "deleteByBatch")
     @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN')")
-    public ResponseEntity<?> deleteItemByBatch(@RequestParam String batch) {
-        var isExcluded = itemService.deleteItemStockByBatch(batch);
-
-        return new ResponseEntity<>(isExcluded, HttpStatus.OK);
+    public ResponseEntity<Void> deleteBatch(@RequestParam String batch) {
+        itemService.deleteBatch(batch);
+        return ResponseEntity.ok().build();
     }
 
+    // 6. Buscar por Nome (Opcional, para autocomplete)
+    @GetMapping(value = "allByName")
+    public ResponseEntity<List<ProdutoResponseDTO>> searchByName(@RequestParam String name) {
+        return ResponseEntity.ok(itemService.searchProductsByName(name));
+    }
 }
