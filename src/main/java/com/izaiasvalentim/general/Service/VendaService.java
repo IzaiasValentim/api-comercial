@@ -8,9 +8,9 @@ import com.izaiasvalentim.general.Domain.DTO.Purchase.PurchaseItemResponseDTO;
 import com.izaiasvalentim.general.Domain.DTO.Purchase.PurchaseRequestDTO;
 import com.izaiasvalentim.general.Domain.DTO.Purchase.PurchaseResponseDTO;
 import com.izaiasvalentim.general.Domain.Enums.TypePurchaseStatus;
+import com.izaiasvalentim.general.Repository.ProdutoRepository;
 import com.izaiasvalentim.general.Repository.UsuarioApiRepository;
 import com.izaiasvalentim.general.Repository.VendaRepository;
-import com.izaiasvalentim.general.Repository.ItemAgregadoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,21 +26,22 @@ import java.util.stream.Collectors;
 public class VendaService {
 
     private final VendaRepository vendaRepository;
-    private final ItemAgregadoRepository resourceRepository;
     private final UsuarioApiRepository usuarioApiRepository;
     private final UsuarioBaseService usuarioBaseService;
     private final ClienteService clienteService; // Usaremos o seu ClientService existente
+    private final ProdutoService produtoService;
+    private final ProdutoRepository produtoRepository;
 
     public VendaService(VendaRepository vendaRepository,
-                        ItemAgregadoRepository resourceRepository,
                         UsuarioApiRepository usuarioApiRepository,
                         ClienteService clienteService,
-                        UsuarioBaseService usuarioBaseService) {
+                        UsuarioBaseService usuarioBaseService, ProdutoService produtoService, ProdutoRepository produtoRepository) {
         this.vendaRepository = vendaRepository;
-        this.resourceRepository = resourceRepository;
         this.usuarioApiRepository = usuarioApiRepository;
         this.clienteService = clienteService;
         this.usuarioBaseService = usuarioBaseService;
+        this.produtoService = produtoService;
+        this.produtoRepository = produtoRepository;
     }
 
     @Transactional
@@ -71,12 +72,12 @@ public class VendaService {
 
         // 4. Processar cada item da compra
         for (PurchaseItemRequestDTO itemDTO : purchaseRequestDTO.getItems()) {
-            ItemAgregado itemParaVenda = resourceRepository.findById(itemDTO.getResourceId())
+            Produto itemParaVenda = produtoService.findByCode(itemDTO.getCode())
                     .orElseThrow(() -> new ResourceNotFoundException("Recurso com ID " + itemDTO.getResourceId() + " não encontrado."));
 
             // Verificar estoque
-            if (itemParaVenda.getStock() < itemDTO.getQuantity()) {
-                throw new ErrorInProcessServiceException("Estoque insuficiente para o recurso: " + itemParaVenda.getName() + ". Disponível: " + itemParaVenda.getStock() + ", Solicitado: " + itemDTO.getQuantity());
+            if (itemParaVenda.getTotalStock() < itemDTO.getQuantity()) {
+                throw new ErrorInProcessServiceException("Estoque insuficiente para o recurso: " + itemParaVenda.getName() + ". Disponível: " + itemParaVenda.getTotalStock() + ", Solicitado: " + itemDTO.getQuantity());
             }
 
             // Assumindo que o preço do item vem do primeiro item associado ao Resource
@@ -84,8 +85,8 @@ public class VendaService {
             // Para uma venda, o preço deve ser estável. Vamos pegar o preço do primeiro item do recurso.
             // VOCÊ PODE PRECISAR REVISAR ESTA LÓGICA DE PREÇO SE UM RECURSO PUDER TER ITENS COM PREÇOS DIFERENTES.
             Double unitPrice;
-            if (itemParaVenda.getItems() != null && !itemParaVenda.getItems().isEmpty()) {
-                unitPrice = itemParaVenda.getItems().getFirst().getPrice();
+            if (itemParaVenda.getLotes() != null && !itemParaVenda.getLotes().isEmpty()) {
+                unitPrice = itemParaVenda.getLotes().getFirst().getPrice();
             } else {
                 throw new ErrorInProcessServiceException("Recurso " + itemParaVenda.getName() + " não possui itens associados para determinar o preço.");
             }
@@ -100,8 +101,8 @@ public class VendaService {
             totalPurchaseAmount += unitPrice * itemDTO.getQuantity();
 
             // 5. Atualizar estoque do Resource
-            itemParaVenda.setStock(itemParaVenda.getStock() - itemDTO.getQuantity());
-            resourceRepository.save(itemParaVenda); // Persiste a alteração no estoque
+            itemParaVenda.setTotalStock(itemParaVenda.getTotalStock() - itemDTO.getQuantity());
+            produtoRepository.save(itemParaVenda); // Persiste a alteração no estoque
         }
 
         venda.setPurchaseItems(itemDeVendas);
@@ -115,12 +116,12 @@ public class VendaService {
         List<PurchaseItemResponseDTO> responseItems = savedVenda.getPurchaseItems().stream()
                 .map(pi -> new PurchaseItemResponseDTO(
                         pi.getItem().getName(),
-                        pi.getItem().getItemCode(),
+                        pi.getItem().getCode(),
                         pi.getQuantity(),
                         // Recupere o preço unitário do item no momento da venda.
                         // Aqui, novamente, estamos assumindo o preço do primeiro item do Resource.
                         // Idealmente, PurchaseItem deveria ter um campo 'unitPriceAtSale' para evitar lookup.
-                        pi.getItem().getItems().getFirst().getPrice()
+                        pi.getItem().getLotes().getFirst().getPrice()
                 ))
                 .collect(Collectors.toList());
 

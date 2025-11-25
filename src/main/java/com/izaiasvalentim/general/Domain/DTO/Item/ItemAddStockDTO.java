@@ -3,29 +3,29 @@ package com.izaiasvalentim.general.Domain.DTO.Item;
 import java.util.Date;
 
 public class ItemAddStockDTO {
-    private String name;
+    private String code;
     private Double price;
     private Double quantity;
     private Date validity;
     private Boolean hasValidity;
 
-    public ItemAddStockDTO(String name, Double price, Double quantity, Date validity, Boolean hasValidity) {
-        this.name = name;
-        this.price = price;
-        this.quantity = quantity;
-        this.validity = validity;
-        this.hasValidity = hasValidity;
-    }
-
     public ItemAddStockDTO() {
     }
 
-    public String getName() {
-        return name;
+    public Date getValidity() {
+        return validity;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setValidity(Date validity) {
+        this.validity = validity;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Double getPrice() {
@@ -42,14 +42,6 @@ public class ItemAddStockDTO {
 
     public void setQuantity(Double quantity) {
         this.quantity = quantity;
-    }
-
-    public Date getValidity() {
-        return validity;
-    }
-
-    public void setValidity(Date validity) {
-        this.validity = validity;
     }
 
     public Boolean getHasValidity() {

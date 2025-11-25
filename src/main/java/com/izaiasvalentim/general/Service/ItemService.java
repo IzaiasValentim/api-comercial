@@ -5,13 +5,17 @@ import com.izaiasvalentim.general.Common.CustomExceptions.ResourceAlreadyExistsE
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceNotFoundException;
 import com.izaiasvalentim.general.Common.utils.ItemUtils;
 import com.izaiasvalentim.general.Domain.DTO.Item.ItemAddStockDTO;
-import com.izaiasvalentim.general.Domain.DTO.Item.ItemStockDTO;
+import com.izaiasvalentim.general.Domain.DTO.Item.ItemDTO;
+import com.izaiasvalentim.general.Domain.DTO.Produto.ProdutoDetailDTO;
+import com.izaiasvalentim.general.Domain.DTO.Produto.ProdutoResponseDTO;
 import com.izaiasvalentim.general.Domain.Item;
-import com.izaiasvalentim.general.Domain.ItemAgregado;
-import com.izaiasvalentim.general.Repository.ItemAgregadoRepository;
+import com.izaiasvalentim.general.Domain.Produto;
 import com.izaiasvalentim.general.Repository.ItemRepository;
+import com.izaiasvalentim.general.Repository.ProdutoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,114 +24,114 @@ import java.util.List;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-    private final ItemAgregadoRepository itemAgregadoRepository;
-    private final ItemAgregadoService itemAgregadoService;
-
+    private final ProdutoRepository produtoRepository;
 
     @Autowired
-    public ItemService(ItemRepository itemRepository, ItemAgregadoService itemAgregadoService, ItemAgregadoRepository itemAgregadoRepository) {
+    public ItemService(ItemRepository itemRepository, ProdutoRepository produtoRepository) {
         this.itemRepository = itemRepository;
-        this.itemAgregadoService = itemAgregadoService;
-        this.itemAgregadoRepository = itemAgregadoRepository;
+        this.produtoRepository = produtoRepository;
     }
 
+    // --- CRIAÇÃO ---
+
     @Transactional
-    public Item registerNewItem(Item item) {
+    public ProdutoResponseDTO registerNewProduct(ItemDTO dto) {
         try {
-            if (itemRepository.findFirstByName(item.getName()).isPresent() || itemRepository.findFirstByCode(item.getCode()).isPresent()) {
-                throw new ResourceAlreadyExistsException("Item de nome ou código já existe. " +
-                        "Tente adicionar estoque para ele.");
+            if (produtoRepository.findByCode(dto.code()).isPresent()) {
+                throw new ResourceAlreadyExistsException("Produto com código " + dto.code() + " já existe.");
             }
-            item.setDeleted(false);
-            var savedItem = itemRepository.save(item);
-            ItemUtils.generateItemBatch(savedItem);
 
-            itemAgregadoService.createResourceAfterInitialItem(savedItem);
+            // 1. Cria o Produto (Pai)
+            Produto produto = new Produto(dto);
 
-            itemRepository.save(savedItem);
+            // Salva o pai -> Agora ele é persistente e tem ID
+            Item firstBatch = new Item(dto);
 
-            return savedItem;
+            // Vincula ao pai já salvo
+            firstBatch.setProduto(produto);
+
+            // 3. Salva o item para gerar o ID (necessário para o Batch)
+            firstBatch = itemRepository.save(firstBatch);
+
+            // 4. Gera o código do lote com o ID real e atualiza
+            ItemUtils.generateItemBatch(produto, firstBatch);
+            itemRepository.save(firstBatch);
+
+            // 5. Atualiza o estoque do pai e retorna
+            // (Adicionamos na lista em memória apenas para o cálculo/retorno, pois já está salvo no banco)
+            produto.getLotes().add(firstBatch);
+            produto.calculateTotalStock();
+
+            return new ProdutoResponseDTO(produtoRepository.save(produto));
+
         } catch (Exception e) {
-            throw new ErrorInProcessServiceException(e.getMessage());
+            throw new ErrorInProcessServiceException("Erro ao registrar produto: " + e.getMessage());
         }
     }
 
     @Transactional
-    public Item addItemStock(ItemAddStockDTO itemDTO) {
+    public ProdutoResponseDTO addStock(ItemAddStockDTO dto) {
         try {
-            Item validateItem = itemRepository.findFirstByName(itemDTO.getName()).orElse(null);
+            // Busca por código ou nome (preferência por código se tiver, mas mantive nome p/ compatibilidade)
+            Produto produto = produtoRepository.findByCode(dto.getCode())
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + dto.getCode()));
 
-            if (validateItem != null) {
+            // Cria novo lote
+            Item newBatch = new Item(dto, produto);
 
-                Item newItem = new Item();
-                newItem.setName(validateItem.getName());
-                newItem.setType(validateItem.getType());
-                newItem.setPrice(itemDTO.getPrice());
-                newItem.setQuantity(itemDTO.getQuantity());
-                newItem.setCode(validateItem.getCode());
-                newItem.setValidity(itemDTO.getValidity());
-                newItem.setHasValidity(itemDTO.getHasValidity());
+            // Salva para gerar ID
+            newBatch = itemRepository.save(newBatch);
 
-                var savedItem = itemRepository.save(newItem);
-                ItemUtils.generateItemBatch(savedItem);
+            // Gera Batch Code e atualiza
+            ItemUtils.generateItemBatch(produto, newBatch);
+            itemRepository.save(newBatch);
 
-                itemAgregadoService.updateResourceAfterChangedItemStock(savedItem);
+            // Atualiza total do produto
+            produto.getLotes().add(newBatch);
+            produto.calculateTotalStock();
 
-                itemRepository.save(savedItem);
+            return new ProdutoResponseDTO(produtoRepository.save(produto));
 
-                return savedItem;
-            } else {
-                throw new ResourceNotFoundException("Item com nome " + itemDTO.getName() + " não existe.");
-            }
         } catch (Exception e) {
-            throw new ErrorInProcessServiceException(e.getMessage());
+            throw new ErrorInProcessServiceException("Erro ao adicionar estoque: " + e.getMessage());
         }
     }
 
-    public List<Item> getAllItemsByName(String name) {
-        return itemRepository.findAllByName(name).orElse(List.of());
+    // --- LEITURA ---
+
+    public List<ProdutoResponseDTO> getAllProductsPaged(int page, int size) {
+        Page<Produto> produtos = produtoRepository.findAll(PageRequest.of(page, size));
+        return produtos.stream().map(ProdutoResponseDTO::new).toList();
     }
 
-    public ItemStockDTO getItemStockByCode(String code) {
-        ItemAgregado itemAgregado = itemAgregadoRepository.findByItemCode(code).orElse(null);;
-        return new ItemStockDTO(
-                itemAgregado.getId(),
-                itemAgregado.getName(),
-                itemAgregado.getItems().getFirst().getPrice(),
-                itemAgregado.getItemCode(),
-                itemAgregado.getStock(),
-                itemAgregado.getItems()
-        );
+    public ProdutoDetailDTO getProductDetailsByCode(String code) {
+        Produto produto = produtoRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com código: " + code));
+        return new ProdutoDetailDTO(produto);
     }
 
-    public ItemStockDTO getItemStockByName(String name) {
-        ItemAgregado itemAgregado = itemAgregadoRepository.findByNameContaining(name).orElse(null);;
-        return new ItemStockDTO(
-                itemAgregado.getId(),
-                itemAgregado.getName(),
-                itemAgregado.getItems().getFirst().getPrice(),
-                itemAgregado.getItemCode(),
-                itemAgregado.getStock(),
-                itemAgregado.getItems()
-        );
+    public List<ProdutoResponseDTO> searchProductsByName(String name) {
+        // Assumindo que você criou findByNameContaining no ProdutoRepository
+        return produtoRepository.findByNameContaining(name)
+                .stream()
+                .map(ProdutoResponseDTO::new)
+                .toList();
     }
+
+    // --- EXCLUSÃO ---
 
     @Transactional
-    public boolean deleteItemStockByBatch(String batch) {
-        try {
-            var batchToDelete = itemRepository.findByBatch(batch).orElse(null);
-            if (batchToDelete != null) {
-                batchToDelete.setDeleted(true);
-                batchToDelete.setQuantity(0.0);
-                itemAgregadoService.updateResourceAfterChangedItemStock(batchToDelete);
-                return true;
-            } else {
-                throw new ResourceNotFoundException("Item com nome " + batch + " não existe.");
-            }
-        } catch (Exception e) {
-            throw new ErrorInProcessServiceException(e.getMessage());
-        }
+    public void deleteBatch(String batchCode) {
+        Item batch = itemRepository.findByBatch(batchCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Lote não encontrado: " + batchCode));
 
+        batch.setDeleted(true);
+        batch.setQuantity(0.0); // Zera quantidade para o cálculo bater
+        itemRepository.save(batch);
+
+        // Atualiza o pai
+        Produto produto = batch.getProduto();
+        produto.calculateTotalStock();
+        produtoRepository.save(produto);
     }
-
 }

@@ -1,8 +1,10 @@
 package com.izaiasvalentim.general.Common.Config.Security;
 
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.time.Instant;
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,12 +24,14 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.time.Instant;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import static com.izaiasvalentim.general.Common.utils.TimeUtils.getCurrentTimeTruncatedInSeconds;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 
 @Configuration
 @EnableWebSecurity
@@ -41,6 +45,7 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         (auth) -> auth
                                 .requestMatchers("/authenticate/**").permitAll()
@@ -56,6 +61,18 @@ public class SecurityConfiguration {
                 );
 
         return httpSecurity.build();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.addAllowedOrigin("http://localhost:5173");
+        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        UrlBasedCorsConfigurationSource ubccs = new UrlBasedCorsConfigurationSource();
+        ubccs.registerCorsConfiguration("/**", corsConfig);
+        return ubccs;
     }
 
     @Bean
