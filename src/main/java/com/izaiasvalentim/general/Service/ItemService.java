@@ -42,29 +42,27 @@ public class ItemService {
             }
 
             // 1. Cria o Produto (Pai)
-            Produto produto = new Produto();
-            produto.setName(dto.name());
-            produto.setCode(dto.code());
-            produto.setCategory(dto.type());
-            produto.setActive(true);
+            Produto produto = new Produto(dto);
 
-            // 2. Cria o primeiro Lote (Filho)
-            Item firstBatch = new Item();
-            firstBatch.setPrice(dto.price());
-            firstBatch.setQuantity(dto.quantity());
-            firstBatch.setValidity(dto.validity());
-            firstBatch.setHasValidity(dto.hasValidity());
-            firstBatch.setDeleted(false);
+            // Salva o pai -> Agora ele é persistente e tem ID
+            Item firstBatch = new Item(dto);
+
+            // Vincula ao pai já salvo
             firstBatch.setProduto(produto);
 
-            ItemUtils.generateItemBatch(produto, firstBatch); // Gera o código do lote (ex: NA101)
+            // 3. Salva o item para gerar o ID (necessário para o Batch)
+            firstBatch = itemRepository.save(firstBatch);
 
-            // 3. Vincula e Salva (Cascade fará o resto)
+            // 4. Gera o código do lote com o ID real e atualiza
+            ItemUtils.generateItemBatch(produto, firstBatch);
+            itemRepository.save(firstBatch);
+
+            // 5. Atualiza o estoque do pai e retorna
+            // (Adicionamos na lista em memória apenas para o cálculo/retorno, pois já está salvo no banco)
             produto.getLotes().add(firstBatch);
-            produto.calculateTotalStock(); // Garante que o totalStock esteja atualizado
+            produto.calculateTotalStock();
 
-            Produto saved = produtoRepository.save(produto);
-            return new ProdutoResponseDTO(saved);
+            return new ProdutoResponseDTO(produtoRepository.save(produto));
 
         } catch (Exception e) {
             throw new ErrorInProcessServiceException("Erro ao registrar produto: " + e.getMessage());
@@ -78,20 +76,21 @@ public class ItemService {
             Produto produto = produtoRepository.findByCode(dto.getCode())
                     .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + dto.getCode()));
 
-            Item newBatch = new Item();
-            newBatch.setPrice(dto.getPrice());
-            newBatch.setQuantity(dto.getQuantity());
-            newBatch.setValidity(dto.getValidity());
-            newBatch.setHasValidity(dto.getHasValidity());
-            newBatch.setDeleted(false);
-            newBatch.setProduto(produto);
-            var salvo = itemRepository.save(newBatch);
-            ItemUtils.generateItemBatch(produto, salvo);
-            produto.getLotes().add(salvo);
-            produto.calculateTotalStock(); // Recalcula o total
+            // Cria novo lote
+            Item newBatch = new Item(dto, produto);
 
-            Produto saved = produtoRepository.save(produto);
-            return new ProdutoResponseDTO(saved);
+            // Salva para gerar ID
+            newBatch = itemRepository.save(newBatch);
+
+            // Gera Batch Code e atualiza
+            ItemUtils.generateItemBatch(produto, newBatch);
+            itemRepository.save(newBatch);
+
+            // Atualiza total do produto
+            produto.getLotes().add(newBatch);
+            produto.calculateTotalStock();
+
+            return new ProdutoResponseDTO(produtoRepository.save(produto));
 
         } catch (Exception e) {
             throw new ErrorInProcessServiceException("Erro ao adicionar estoque: " + e.getMessage());
