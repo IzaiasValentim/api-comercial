@@ -1,13 +1,13 @@
 package com.izaiasvalentim.general.Domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.izaiasvalentim.general.Domain.DTO.Item.ItemDTO;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "produtos")
 public class Produto {
 
     @Id
@@ -35,8 +35,17 @@ public class Produto {
     public Produto() {
     }
 
+    public Produto(ItemDTO dto) {
+        this.name = dto.name();
+        this.code = dto.code();
+        this.category = dto.type();
+        this.active = true;
+        this.totalStock = 0.0;
+    }
+
     public void calculateTotalStock() {
         this.totalStock = this.lotes.stream()
+                .filter(item -> !Boolean.TRUE.equals(item.getDeleted())) // Ignora deletados
                 .mapToDouble(Item::getQuantity)
                 .sum();
     }
