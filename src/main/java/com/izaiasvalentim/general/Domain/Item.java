@@ -1,6 +1,8 @@
 package com.izaiasvalentim.general.Domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.izaiasvalentim.general.Domain.DTO.Item.ItemAddStockDTO;
+import com.izaiasvalentim.general.Domain.DTO.Item.ItemDTO;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -26,11 +28,28 @@ public class Item {
     private Boolean deleted;
 
     @ManyToOne
-    @JoinColumn(name = "produto_id", nullable = false)
+    @JoinColumn(name = "produto_id")
     @JsonBackReference
     private Produto produto;
 
     public Item() {
+    }
+
+    public Item(ItemAddStockDTO dto, Produto produto) {
+        this.price = dto.getPrice();
+        this.quantity = dto.getQuantity();
+        this.validity = dto.getValidity();
+        this.hasValidity = dto.getHasValidity();
+        this.deleted = false;
+        this.produto = produto;
+    }
+
+    public Item(ItemDTO itemDto) {
+        this.price = itemDto.price();
+        this.quantity = itemDto.quantity();
+        this.validity = itemDto.validity() ;
+        this.hasValidity = itemDto.hasValidity();
+        this.deleted = false;
     }
 
     public long getId() {
