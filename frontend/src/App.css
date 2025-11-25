@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  /* Definindo sua paleta de cores personalizada */
+  --color-primary: #3B82F6;
+  --color-primary-hover: #2563EB;
+  --color-secondary: #EBF5FF;
+  --color-light-gray: #F3F4F6;
+  --color-medium-gray: #9CA3AF;
+  --color-dark-gray: #1F2937;
+}
