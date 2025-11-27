@@ -6,6 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { UsersPage } from './pages/UsersPage';
 import { ProductsPage } from './pages/ProductsPage';
+import { ClientsPage } from './pages/ClientsPage';
 
 // Componente para proteger rotas privadas
 const PrivateRoute = ({ children }) => {
@@ -56,6 +57,16 @@ function App() {
             element={
               <PrivateRoute>
                 <ProductsPage />
+              </PrivateRoute>
+            } 
+          />
+
+          {/* ROTA PARA GESTÃO DE CLIENTES */}
+          <Route 
+            path="/clients" 
+            element={
+              <PrivateRoute>
+                <ClientsPage />
               </PrivateRoute>
             } 
           />

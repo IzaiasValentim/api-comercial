@@ -16,8 +16,8 @@ export const ProductsPage = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // --- ESTADOS DE DADOS ---
-  const [selectedProduct, setSelectedProduct] = useState(null); // Produto selecionado para adicionar estoque
-  const [productDetails, setProductDetails] = useState(null);   // Detalhes (lotes) do produto visualizado
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productDetails, setProductDetails] = useState(null);
   
   // Estado único para formulários (Create e Add Stock)
   const [formData, setFormData] = useState({
@@ -113,7 +113,7 @@ export const ProductsPage = () => {
         code: formData.code,
         price: parseFloat(formData.price),
         quantity: parseFloat(formData.quantity),
-         validity: formData.hasValidity && formData.validity ? new Date(formData.validity).toISOString() : null,
+        validity: formData.hasValidity && formData.validity ? new Date(formData.validity).toISOString() : null,
         hasValidity: formData.hasValidity,
       };
 console.log(payload.code)
@@ -147,7 +147,7 @@ console.log(payload.code)
         alert('Lote removido!');
         // Recarrega os detalhes para atualizar a lista de lotes
         if (productDetails) {
-             openDetailsModal(productDetails.itemCode);
+             openDetailsModal(productDetails.code);
         }
         // Recarrega a lista principal para atualizar o estoque total
         fetchProducts();
@@ -218,7 +218,7 @@ console.log(payload.code)
                         + Estoque
                       </button>
                       <button 
-                        onClick={() => openDetailsModal(product.itemCode)}
+                        onClick={() => openDetailsModal(product.code)}
                         className="text-primary hover:text-primary-hover font-medium text-sm border border-blue-200 px-2 py-1 rounded hover:bg-blue-50"
                         title="Ver Lotes e Excluir"
                       >
@@ -301,13 +301,13 @@ console.log(payload.code)
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 m-4">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-primary">Detalhes: {productDetails.nome}</h3>
+                <h3 className="text-xl font-bold text-primary">Detalhes: {productDetails.name}</h3>
                 <button onClick={() => setShowDetailsModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
               </div>
               
               <div className="mb-4 grid grid-cols-3 gap-4 bg-secondary p-3 rounded">
-                <div><span className="block text-xs text-medium-gray">Código Principal</span><span className="font-mono font-bold">{productDetails.itemCode}</span></div>
-                <div><span className="block text-xs text-medium-gray">Estoque Total</span><span className="font-bold">{productDetails.stock}</span></div>
+                <div><span className="block text-xs text-medium-gray">Código Principal</span><span className="font-mono font-bold">{productDetails.code}</span></div>
+                <div><span className="block text-xs text-medium-gray">Estoque Total</span><span className="font-bold">{productDetails.totalStock}</span></div>
                 <div><span className="block text-xs text-medium-gray">Preço Ref.</span><span className="font-bold">R$ {productDetails.price}</span></div>
               </div>
 
@@ -324,15 +324,15 @@ console.log(payload.code)
                     </tr>
                   </thead>
                   <tbody>
-                    {productDetails.itens && productDetails.itens.length > 0 ? productDetails.itens.map((item) => (
-                      <tr key={item.batch || Math.random()} className="border-t">
-                         <td className="p-2 font-mono text-xs">{item.batch}</td>
-                         <td className="p-2">{item.quantity}</td>
-                         <td className="p-2">R$ {item.price}</td>
-                         <td className="p-2">{item.validity ? new Date(item.validity).toLocaleDateString() : '-'}</td>
+                    {productDetails.batches && productDetails.batches.length > 0 ? productDetails.batches.map((batch_item) => (
+                      <tr key={batch_item.batch || Math.random()} className="border-t">
+                         <td className="p-2 font-mono text-xs">{batch_item.batch}</td>
+                         <td className="p-2">{batch_item.quantity}</td>
+                         <td className="p-2">R$ {batch_item.price}</td>
+                         <td className="p-2">{batch_item.validity ? new Date(batch_item.validity).toLocaleDateString() : '-'}</td>
                          <td className="p-2 text-right">
                            <button 
-                             onClick={() => handleDeleteBatch(item.batch)}
+                             onClick={() => handleDeleteBatch(batch_item.batch)}
                              className="text-red-500 hover:text-red-700 hover:underline text-xs font-bold"
                            >
                              Excluir
