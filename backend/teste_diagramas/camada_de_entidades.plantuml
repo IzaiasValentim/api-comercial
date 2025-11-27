@@ -1,0 +1,163 @@
+@startuml
+!theme toy
+top to bottom direction
+
+title Backend API Comercial - Camada de Entidades
+
+' ===================================
+'      CAMADA DE DOMÍNIO
+' ===================================
+package "Domínio (Entidades)" {
+    class Acesso {
+        - long id
+        - UsuarioApi user
+        - Date date
+        + Acesso(UsuarioApi user, Date date)
+        + Acesso()
+    }
+
+    class Cliente {
+        - Integer id
+        - String name
+        - String email
+        - String identificationNumber
+        - String address
+        - String phoneNumber
+        - String phoneNumberReserve
+        - String payment
+        - List<Venda> allPurchases
+        - Boolean active
+        - Boolean isDeleted
+        + Cliente()
+        + Cliente(String name, String email, String identificationNumber, String address, String phoneNumber, String phoneNumberReserve, String payment, Boolean isDeleted)
+    }
+
+    class Item {
+        - long id
+        - Double price
+        - Double quantity
+        - String batch
+        - Date validity
+        - Boolean hasValidity
+        - Boolean deleted
+        - Produto produto
+        + Item()
+        + Item(ItemAddStockDTO dto, Produto produto)
+        + Item(ItemDTO itemDto)
+    }
+
+    class ItemCompra {
+        - UUID id
+        - Produto item
+        - Venda venda
+        - long quantity
+        + ItemCompra(Produto item, long quantity)
+        + ItemCompra()
+    }
+
+    class Produto {
+        - Long id
+        - String code
+        - String name
+        - String description
+        - String category
+        - Double totalStock
+        - Boolean active
+        - List<Item> lotes
+        + Produto()
+        + Produto(ItemDTO dto)
+        + void calculateTotalStock()
+    }
+
+    class RefreshToken {
+        - long id
+        - UsuarioBase user
+        - String token
+        - Instant expiryDate
+        + RefreshToken()
+    }
+
+    class Role {
+        - Long id
+        - String name
+        + Role(String name)
+        + Role()
+    }
+
+    class UsuarioApi {
+        - long id
+        - UsuarioBase user
+        - String phone
+        - String address
+        - LocalDate admissionDate
+        - LocalDate shutdowsDate
+        - Boolean isAdmin
+        - Boolean isActive
+        - Boolean isDeleted
+        + UsuarioApi(String email, String username, String CPF, String phone, String address, LocalDate admissionDate, LocalDate shutdowsDate, Boolean isActive, Boolean isDeleted)
+        + UsuarioApi()
+    }
+
+    class UsuarioBase {
+        - long id
+        - String username
+        - String CPF
+        - String email
+        - String password
+        - Set<Role> roles
+        + UsuarioBase(String username, String CPF, String email, String password)
+        + UsuarioBase()
+    }
+
+    class Venda {
+        - UUID id
+        - Double total
+        - String paymentMethod
+        - UsuarioApi seller
+        - Cliente cliente
+        - int status
+        - Date realizationDate
+        - Date hiredDate
+        - Boolean isDeleted
+        - List<ItemCompra> itemCompras
+        + Venda(Double total, String paymentMethod, UsuarioApi seller, Cliente cliente, int status, Date realizationDate, Date hiredDate, Boolean isDeleted)
+        + Venda()
+        + UUID getId()
+    }
+}
+
+' ===================================
+'              ENUMS
+' ===================================
+package "Enums" {
+    enum TypeRoles {
+        ADMIN
+        GERENTE
+        VENDEDOR
+    }
+
+    enum TypePurchaseStatus {
+        PENDENTE
+        CONCLUIDA
+        CANCELADA
+    }
+}
+
+' ===================================
+'            RELAÇÕES
+' ===================================
+
+    Acesso "1" -- "1" UsuarioApi : user
+    Cliente "1" -- "0..*" Venda : allPurchases
+    Item "0..*" -- "1" Produto : produto
+    ItemCompra "1" -- "1" Produto : item
+    ItemCompra "0..*" -- "1" Venda : venda
+    Produto "1" -- "0..*" Item : lotes
+    RefreshToken "1" -- "1" UsuarioBase : user
+    UsuarioApi "1" -- "1" UsuarioBase : user
+    UsuarioBase "0..*" -- "0..*" Role : roles
+    Venda "0..*" -- "1" UsuarioApi : seller
+    Venda "0..*" -- "1" Cliente : cliente
+    Venda "1" -- "0..*" ItemCompra : itemCompras
+
+@enduml
