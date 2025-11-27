@@ -1,0 +1,38 @@
+@startuml
+title Diagrama de Implantação - Sistema Comercial
+
+left to right direction
+
+node "Estação do Cliente (Browser)" as ClientNode {
+    component "Frontend Application\n(React + Vite)" as Frontend
+}
+
+node "Servidor de Aplicação" as ServerNode {
+    
+    component "Backend Application\n(Spring Boot)" as BackendApp {
+        
+        package "Arquitetura Interna" {
+            component "Controller Layer\n(REST API)" as Controller
+            component "Service Layer\n(Business Logic)" as Service
+            component "Repository Layer\n(Data Access)" as Repository
+            component "Domain Layer\n(Entities & DTOs)" as Domain
+        }
+    }
+    
+    database "H2 Database" as Database
+}
+
+' Relações Externas
+Frontend --> Controller : HTTP/JSON (REST API)
+
+' Relações Internas do Backend
+Controller --> Service : Chama
+Service --> Repository : Chama
+Repository --> Database : JDBC/JPA (SQL)
+
+' Uso do Domínio
+Controller ..> Domain : Usa
+Service ..> Domain : Usa
+Repository ..> Domain : Usa
+
+@enduml
