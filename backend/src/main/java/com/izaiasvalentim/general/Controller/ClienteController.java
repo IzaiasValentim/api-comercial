@@ -24,7 +24,7 @@ public class ClienteController {
     }
 
     @PostMapping("/")
-    @PreAuthorize("hasAuthority('SCOPE_SELLER')")
+    @PreAuthorize(" hasAuthority('SCOPE_MANAGER') ||hasAuthority('SCOPE_SELLER') ")
     public ResponseEntity<?> registerClient(@RequestBody ClientRegisterDTO clientRegisterDTO) {
         clienteService.requestRegistration(clientRegisterDTO);
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -53,7 +53,7 @@ public class ClienteController {
     }
 
     @PutMapping("/")
-    @PreAuthorize("hasAuthority('SCOPE_SELLER')")
+    @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<?> updateClient(@RequestBody ClientRegisterDTO clientRegisterDTO) {
         clienteService.updateRegistration(clientRegisterDTO);
         return new ResponseEntity<>(HttpStatus.OK);
