@@ -1,0 +1,167 @@
+@startuml
+!theme toy
+top to bottom direction
+
+title Backend API Comercial - Diagrama de Classes (Services x Repositories)
+
+' ---------------------------------------------------
+' ORGANIZAÇÃO EM CAMADAS
+' ---------------------------------------------------
+
+package "Service Layer (Regras de Negócio)" {
+
+    package "Autenticação & Segurança" {
+        class AuthenticationService {
+        - JwtService jwtService
+        - RefreshTokenService refreshTokenService
+        + authenticate(Authentication authentication)
+        + refreshToken(String refreshToken)
+    }
+
+        class RefreshTokenService {
+        - RefreshTokenRepository refreshTokenRepository
+        - UsuarioBaseRepository usuarioBaseRepository
+        - Integer refreshTokenExpiresInSeconds
+        + validateTokenRenewal(String token)
+        + createRefreshToken(String username)
+    }
+
+        class JwtService {
+            + generateToken(Authentication): String
+        }
+
+        class RoleService {
+        - RoleRepository roleRepository
+        + getRoleById(Long id)
+    }
+    }
+
+    package "Usuários" {
+        class UsuarioApiService {
+        - UsuarioApiRepository usuarioApiRepository
+        - UsuarioBaseService usuarioBaseService
+        + registerUser(ApiUserRegisterDTO dto)
+        + updateUser(ApiUserRegisterDTO dto)
+        + getUserByUsername(String username)
+        + getAllUsers()
+        + deleteUserByUsername(String username)
+    }
+
+        class UsuarioBaseService {
+        - UsuarioBaseRepository usuarioBaseRepository
+        - BCryptPasswordEncoder encoder
+        - RoleService roleService
+        + save(ApiUserRegisterDTO dto)
+        + findByUsername(String username)
+        + findByEmail(String email)
+        + findByCPF(String cpf)
+    }
+    }
+
+    package "Clientes" {
+        class ClienteService {
+        - ClienteRepository clienteRepository
+        + requestRegistration(ClientRegisterDTO clientDTO)
+        + approveClientRegistration(String identificationNumber)
+        + findClientsByNameAndStatus(String name, Boolean active)
+        + findByIdentificationNumber(String identificationNumber)
+        + updateRegistration(ClientRegisterDTO clientDTO)
+        + logicalDeleteClient(String identificationNumber)
+    }
+    }
+
+    package "Itens & Produtos" {
+        class ItemService {
+        - ItemRepository itemRepository
+        - ProdutoRepository produtoRepository
+        + registerNewProduct(ItemDTO dto)
+        + addStock(ItemAddStockDTO dto)
+        + getAllProductsPaged(int page, int size)
+        + getProductDetailsByCode(String code)
+        + searchProductsByName(String name)
+        + deleteBatch(String batchCode)
+    }
+
+        class ProdutoService {
+        - ProdutoRepository produtoRepository
+        + findByCode(String code)
+        + save(Produto produto)
+    }
+    }
+
+    package "Vendas" {
+        class VendaService {
+        - VendaRepository vendaRepository
+        - UsuarioApiRepository usuarioApiRepository
+        - UsuarioBaseService usuarioBaseService
+        - ClienteService clienteService
+        - ProdutoService produtoService
+        - ProdutoRepository produtoRepository
+        + createPurchase(PurchaseRequestDTO purchaseRequestDTO)
+    }
+    }
+}
+
+
+' ---------------------------------------------------
+' CAMADA DE REPOSITÓRIOS
+' ---------------------------------------------------
+
+package "Repository Layer (Persistência)" {
+    interface AccessoRepository
+    interface ClienteRepository {
+        + findByIdentificationNumber(String identificationNumber)
+        + findByEmail(String email)
+        + findDistinctByNameContainingAndActive(String name, Boolean active, Pageable pageable)
+    }
+    interface ItemCompraRepository
+    interface ItemRepository {
+        + findByBatch(String batch)
+    }
+    interface ProdutoRepository {
+        + findByCode(String code)
+        + findByNameContaining(String name)
+    }
+    interface RefreshTokenRepository {
+        + findByToken(String token)
+        + findByUser(UsuarioBase user)
+    }
+    interface RoleRepository
+    interface UsuarioApiRepository {
+        + findByUser(UsuarioBase user)
+    }
+    interface UsuarioBaseRepository {
+        + findByUsername(String username)
+        + findByEmail(String email)
+        + findByCPF(String cpf)
+    }
+    interface VendaRepository
+}
+
+' ---------------------------------------------------
+' RELACIONAMENTOS ENTRE SERVICES E REPOSITORIES
+' ---------------------------------------------------
+
+' Service -> Repository
+ClienteService --> ClienteRepository
+ItemService --> ItemRepository
+ItemService --> ProdutoRepository
+ProdutoService --> ProdutoRepository
+RefreshTokenService --> RefreshTokenRepository
+RefreshTokenService --> UsuarioBaseRepository
+RoleService --> RoleRepository
+UsuarioApiService --> UsuarioApiRepository
+UsuarioBaseService --> UsuarioBaseRepository
+VendaService --> VendaRepository
+VendaService --> UsuarioApiRepository
+VendaService --> ProdutoRepository
+
+' Service -> Service
+AuthenticationService --> RefreshTokenService
+UsuarioApiService --> UsuarioBaseService
+UsuarioBaseService --> RoleService
+VendaService --> UsuarioBaseService
+VendaService --> ClienteService
+VendaService --> ProdutoService
+
+@enduml

@@ -1,0 +1,210 @@
+@startuml
+
+package "com.izaiasvalentim.general.Controller" {
+    class AuthenticationController {
+        - AuthenticationService authenticationService
+        - AuthenticationManager authenticationManager
+        + authenticate(UserAuthDTO userAuthDTO)
+        + refresh(RequestRefreshTokenDTO refreshTokenDTO)
+    }
+
+    class ClienteController {
+        - ClienteService clienteService
+        + registerClient(ClientRegisterDTO clientRegisterDTO)
+        + approveClient(ClientIdentification identificationNumber)
+        + findClientsByNameAndStatus(String name, Boolean status)
+        + findByIdentificationNumber(String identificationNumber)
+        + updateClient(ClientRegisterDTO clientRegisterDTO)
+        + deleteClient(String identificationNumber)
+    }
+
+    class ItemController {
+        - ItemService itemService
+        + getAllProducts(int page, int quantidade)
+        + getProductDetails(String code)
+        + createProduct(ItemDTO dto)
+        + addStock(ItemAddStockDTO dto)
+        + deleteBatch(String batch)
+        + searchByName(String name)
+    }
+
+    class UsuarioApiController {
+        - UsuarioApiService usuarioApiService
+        + createUser(ApiUserRegisterDTO dto)
+        + updateUser(ApiUserRegisterDTO dto)
+        + getUserByUsername(String username)
+        + getAllUsers()
+        + deleteUserByUsername(String username)
+    }
+
+    class VendaController {
+        - VendaService vendaService
+        + createPurchase(PurchaseRequestDTO purchaseRequestDTO)
+    }
+}
+
+package "com.izaiasvalentim.general.Service" {
+    class AuthenticationService {
+        - JwtService jwtService
+        - RefreshTokenService refreshTokenService
+        + authenticate(Authentication authentication)
+        + refreshToken(String refreshToken)
+    }
+
+    class ClienteService {
+        - ClienteRepository clienteRepository
+        + requestRegistration(ClientRegisterDTO clientDTO)
+        + approveClientRegistration(String identificationNumber)
+        + findClientsByNameAndStatus(String name, Boolean active)
+        + findByIdentificationNumber(String identificationNumber)
+        + updateRegistration(ClientRegisterDTO clientDTO)
+        + logicalDeleteClient(String identificationNumber)
+    }
+
+    class ItemService {
+        - ItemRepository itemRepository
+        - ProdutoRepository produtoRepository
+        + registerNewProduct(ItemDTO dto)
+        + addStock(ItemAddStockDTO dto)
+        + getAllProductsPaged(int page, int size)
+        + getProductDetailsByCode(String code)
+        + searchProductsByName(String name)
+        + deleteBatch(String batchCode)
+    }
+
+    class ProdutoService {
+        - ProdutoRepository produtoRepository
+        + findByCode(String code)
+        + save(Produto produto)
+    }
+
+    class RefreshTokenService {
+        - RefreshTokenRepository refreshTokenRepository
+        - UsuarioBaseRepository usuarioBaseRepository
+        - Integer refreshTokenExpiresInSeconds
+        + validateTokenRenewal(String token)
+        + createRefreshToken(String username)
+    }
+
+    class RoleService {
+        - RoleRepository roleRepository
+        + getRoleById(Long id)
+    }
+
+    class UsuarioApiService {
+        - UsuarioApiRepository usuarioApiRepository
+        - UsuarioBaseService usuarioBaseService
+        + registerUser(ApiUserRegisterDTO dto)
+        + updateUser(ApiUserRegisterDTO dto)
+        + getUserByUsername(String username)
+        + getAllUsers()
+        + deleteUserByUsername(String username)
+    }
+
+    class UsuarioBaseService {
+        - UsuarioBaseRepository usuarioBaseRepository
+        - BCryptPasswordEncoder encoder
+        - RoleService roleService
+        + save(ApiUserRegisterDTO dto)
+        + findByUsername(String username)
+        + findByEmail(String email)
+        + findByCPF(String cpf)
+    }
+
+    class VendaService {
+        - VendaRepository vendaRepository
+        - UsuarioApiRepository usuarioApiRepository
+        - UsuarioBaseService usuarioBaseService
+        - ClienteService clienteService
+        - ProdutoService produtoService
+        - ProdutoRepository produtoRepository
+        + createPurchase(PurchaseRequestDTO purchaseRequestDTO)
+    }
+}
+
+package "com.izaiasvalentim.general.Repository" {
+    interface AccessoRepository
+    interface ClienteRepository {
+        + findByIdentificationNumber(String identificationNumber)
+        + findByEmail(String email)
+        + findDistinctByNameContainingAndActive(String name, Boolean active, Pageable pageable)
+    }
+    interface ItemCompraRepository
+    interface ItemRepository {
+        + findByBatch(String batch)
+    }
+    interface ProdutoRepository {
+        + findByCode(String code)
+        + findByNameContaining(String name)
+    }
+    interface RefreshTokenRepository {
+        + findByToken(String token)
+        + findByUser(UsuarioBase user)
+    }
+    interface RoleRepository
+    interface UsuarioApiRepository {
+        + findByUser(UsuarioBase user)
+    }
+    interface UsuarioBaseRepository {
+        + findByUsername(String username)
+        + findByEmail(String email)
+        + findByCPF(String cpf)
+    }
+    interface VendaRepository
+}
+
+package "com.izaiasvalentim.general.Domain" {
+    class Acesso
+    class Cliente
+    class Item
+    class ItemCompra
+    class Produto
+    class RefreshToken
+    class Role
+    class UsuarioApi
+    class UsuarioBase
+    class Venda
+}
+
+' Controller -> Service
+AuthenticationController --> AuthenticationService
+ClienteController --> ClienteService
+ItemController --> ItemService
+UsuarioApiController --> UsuarioApiService
+VendaController --> VendaService
+
+' Service -> Repository
+ClienteService --> ClienteRepository
+ItemService --> ItemRepository
+ItemService --> ProdutoRepository
+ProdutoService --> ProdutoRepository
+RefreshTokenService --> RefreshTokenRepository
+RefreshTokenService --> UsuarioBaseRepository
+RoleService --> RoleRepository
+UsuarioApiService --> UsuarioApiRepository
+UsuarioBaseService --> UsuarioBaseRepository
+VendaService --> VendaRepository
+VendaService --> UsuarioApiRepository
+VendaService --> ProdutoRepository
+
+' Service -> Service
+AuthenticationService --> RefreshTokenService
+UsuarioApiService --> UsuarioBaseService
+UsuarioBaseService --> RoleService
+VendaService --> UsuarioBaseService
+VendaService --> ClienteService
+VendaService --> ProdutoService
+
+' Repository -> Domain
+AccessoRepository ..> Acesso
+ClienteRepository ..> Cliente
+ItemCompraRepository ..> ItemCompra
+ItemRepository ..> Item
+ProdutoRepository ..> Produto
+RefreshTokenRepository ..> RefreshToken
+RoleRepository ..> Role
+UsuarioApiRepository ..> UsuarioApi
+UsuarioBaseRepository ..> UsuarioBase
+VendaRepository ..> Venda
+
+@enduml
