@@ -1,0 +1,70 @@
+@startuml
+title Diagrama de Implantação - Sistema Comercial
+skinparam componentStyle uml2
+
+left to right direction
+
+' --- CLIENTES ---
+node "Dispositivos Clientes" {
+    node "PC / Notebook" {
+        component "Navegador Web\n(SPA React + Vite)" as WebApp
+    }
+    node "Smartphone" {
+        component "App Mobile\n(React Native / Flutter)" as MobileApp
+    }
+}
+
+' --- INFRAESTRUTURA DO SERVIDOR ---
+node "Servidor de Aplicação (Linux/Cloud)" as ServerHost {
+    
+    component "Reverse Proxy / Load Balancer\n(Nginx)" as Proxy
+    
+    node "Docker Container" {
+        component "API Comercial\n(Spring Boot .jar)" as BackendApp {
+            
+            port "8080" as PortApp
+            
+            package "Camadas da Aplicação" {
+                component "Security Config\n(JWT/OAuth2)" as Security
+                component "Controller Layer\n(REST)" as Controller
+                component "Service Layer\n(Regras de Negócio)" as Service
+                component "Repository Layer\n(JPA/Hibernate)" as Repository
+                
+                Controller -> Service
+                Service -> Repository
+                Controller ..> Security : Valida Token
+            }
+        }
+    }
+}
+
+' --- BANCO DE DADOS ---
+node "Servidor de Banco de Dados" as DBHost {
+    database "PostgreSQL / MySQL\n(Produção)" as Database
+}
+
+' --- SISTEMAS EXTERNOS ---
+cloud "Internet / Serviços Terceiros" as Cloud {
+    component "Gateway de Pagamento\n(Stripe/PagSeguro)" as PaymentGateway
+    component "Serviço de Email\n(SMTP/SendGrid)" as EmailService
+    component "Receita Federal/NFe\n(API Governamental)" as NfeAPI
+}
+
+' --- RELACIONAMENTOS ---
+
+' Clientes acessam o Proxy
+WebApp --> Proxy : HTTPS (JSON)
+MobileApp --> Proxy : HTTPS (JSON)
+
+' Proxy encaminha para o Spring Boot
+Proxy --> PortApp : Encaminhamento Interno
+
+' Backend acessa o Banco
+Repository --> Database : TCP/IP (Driver JDBC)
+
+' Backend consome serviços externos
+Service --> PaymentGateway : HTTPS (Processar Pgto)
+Service --> EmailService : SMTP/API (Notificações)
+Service --> NfeAPI : HTTPS (Emitir Nota)
+
+@enduml
