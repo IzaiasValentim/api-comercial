@@ -9,22 +9,23 @@ public class ClientDTO {
     private String address;
     private String phoneNumber;
     private String phoneNumberReserve;
+    private String payment;
     private String status;
     private Boolean isDeleted;
 
     public ClientDTO() {
     }
 
-    public ClientDTO(String name, String email, String identificationNumber, String address, String phoneNumber,
-                     String phoneNumberReserve, String status, Boolean isDeleted) {
+    public ClientDTO(String name, String email, String identificationNumber, String address, String phoneNumber, String phoneNumberReserve, String payment, String status, Boolean isDeleted) {
         this.name = name;
         this.email = email;
         this.identificationNumber = identificationNumber;
         this.address = address;
         this.phoneNumber = phoneNumber;
         this.phoneNumberReserve = phoneNumberReserve;
+        this.payment = payment;
         this.status = status;
-        this.isDeleted = false;
+        this.isDeleted = isDeleted;
     }
 
     public ClientDTO(Cliente cliente) {
@@ -34,6 +35,7 @@ public class ClientDTO {
         this.address = cliente.getAddress();
         this.phoneNumber = cliente.getPhoneNumber();
         this.phoneNumberReserve = cliente.getPhoneNumberReserve();
+        this.payment = cliente.getPayment();
         if (cliente.getActive()) {
             status = "Active";
         } else {
@@ -93,6 +95,14 @@ public class ClientDTO {
 
     public void setPhoneNumberReserve(String phoneNumberReserve) {
         this.phoneNumberReserve = phoneNumberReserve;
+    }
+
+    public String getPayment() {
+        return payment;
+    }
+
+    public void setPayment(String payment) {
+        this.payment = payment;
     }
 
     public String getStatus() {
