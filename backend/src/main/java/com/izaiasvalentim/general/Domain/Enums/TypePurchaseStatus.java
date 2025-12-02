@@ -1,11 +1,11 @@
 package com.izaiasvalentim.general.Domain.Enums;
 
 public enum TypePurchaseStatus {
-    RECEIVED(1, "Received"),
-    IN_PROGRESS(2, "In Progress"),
-    READY(3, "Ready"),
-    COMPLETED(4, "Completed"),
-    CANCELLED(5, "Cancelled");
+    RECEIVED(1, "RECEBIDO"),
+    IN_PROGRESS(2, "EM PROGRESSO"),
+    READY(3, "PRONTO"),
+    COMPLETED(4, "COMPLETADO"),
+    CANCELLED(5, "CANCELADO");
 
     private final int id;
     private final String status;
@@ -23,6 +23,15 @@ public enum TypePurchaseStatus {
         for (TypePurchaseStatus status : TypePurchaseStatus.values()) {
             if (status.id == id) {
                 return status;
+            }
+        }
+        return null;
+    }
+
+    public static TypePurchaseStatus getStatusEnumByStatus(String status) {
+        for (TypePurchaseStatus type : TypePurchaseStatus.values()) {
+            if (type.status.equals(status)) {
+                return type;
             }
         }
         return null;
