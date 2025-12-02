@@ -1,25 +1,25 @@
 package com.izaiasvalentim.general.Service;
 
+
 import com.izaiasvalentim.general.Common.CustomExceptions.ErrorInProcessServiceException;
 import com.izaiasvalentim.general.Common.CustomExceptions.ResourceNotFoundException;
+import com.izaiasvalentim.general.Common.utils.ItemUtils;
 import com.izaiasvalentim.general.Domain.*;
-import com.izaiasvalentim.general.Domain.DTO.Purchase.PurchaseItemRequestDTO;
-import com.izaiasvalentim.general.Domain.DTO.Purchase.PurchaseItemResponseDTO;
-import com.izaiasvalentim.general.Domain.DTO.Purchase.PurchaseRequestDTO;
-import com.izaiasvalentim.general.Domain.DTO.Purchase.PurchaseResponseDTO;
+import com.izaiasvalentim.general.Domain.DTO.Purchase.*;
 import com.izaiasvalentim.general.Domain.Enums.TypePurchaseStatus;
+import com.izaiasvalentim.general.Repository.ItemRepository;
 import com.izaiasvalentim.general.Repository.ProdutoRepository;
 import com.izaiasvalentim.general.Repository.UsuarioApiRepository;
 import com.izaiasvalentim.general.Repository.VendaRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.Authentication;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,113 +28,241 @@ public class VendaService {
     private final VendaRepository vendaRepository;
     private final UsuarioApiRepository usuarioApiRepository;
     private final UsuarioBaseService usuarioBaseService;
-    private final ClienteService clienteService; // Usaremos o seu ClientService existente
-    private final ProdutoService produtoService;
+    private final ClienteService clienteService;
     private final ProdutoRepository produtoRepository;
+    private final ItemRepository itemRepository;
 
     public VendaService(VendaRepository vendaRepository,
                         UsuarioApiRepository usuarioApiRepository,
                         ClienteService clienteService,
-                        UsuarioBaseService usuarioBaseService, ProdutoService produtoService, ProdutoRepository produtoRepository) {
+                        UsuarioBaseService usuarioBaseService,
+                        ProdutoRepository produtoRepository,
+                        ItemRepository itemRepository) {
         this.vendaRepository = vendaRepository;
         this.usuarioApiRepository = usuarioApiRepository;
         this.clienteService = clienteService;
         this.usuarioBaseService = usuarioBaseService;
-        this.produtoService = produtoService;
         this.produtoRepository = produtoRepository;
+        this.itemRepository = itemRepository;
+    }
+
+    public Page<PurchaseListDTO> findAllPaged(String cpf, String name, Integer statusStr, int page, int size) {
+        Integer statusId = null;
+        System.out.println("\n\n\n\n dsadsadsadasds"+statusStr);
+        if (statusStr != null) {
+            try {
+                TypePurchaseStatus time = TypePurchaseStatus.getStatusEnumById(statusStr);
+                statusId = time.getId();
+            } catch (IllegalArgumentException e) {
+                statusId = null;
+            }
+        }
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("realizationDate").descending());
+
+        return vendaRepository.findByFilters(cpf, name, statusId, pageRequest)
+                .map(PurchaseListDTO::new);
     }
 
     @Transactional
-    public PurchaseResponseDTO createPurchase(PurchaseRequestDTO purchaseRequestDTO) {
-        // 1. Obter o vendedor autenticado
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName(); // O nome de usuário (geralmente email ou username)
+    public PurchaseResponseDTO createPurchase(PurchaseRequestDTO dto) {
+        UsuarioApi seller = getAuthenticatedSeller();
+        Cliente cliente = clienteService.findByIdentificationNumber(dto.getClientIdentificationNumber());
 
-        UsuarioApi seller = usuarioApiRepository.findByUser(usuarioBaseService.findByUsername(currentUsername)).
-                orElseThrow(() -> new ResourceNotFoundException("Vendedor autenticado não encontrado."));
-
-
-        // 2. Obter o cliente
-        Cliente cliente = clienteService.findByIdentificationNumber(purchaseRequestDTO.getClientIdentificationNumber());
-
-        // 3. Inicializar a compra
         Venda venda = new Venda();
-        venda.setPaymentMethod(purchaseRequestDTO.getPaymentMethod());
         venda.setSeller(seller);
         venda.setClient(cliente);
-        venda.setStatus(TypePurchaseStatus.RECEIVED); // Status inicial
-        venda.setRealizationDate(new Date()); // Data atual da realização
-        venda.setHiredDate(new Date()); // Pode ser a mesma da realização ou ajustada
+        venda.setPaymentMethod(dto.getPaymentMethod());
+        venda.setStatus(TypePurchaseStatus.RECEIVED);
+        venda.setRealizationDate(new Date());
         venda.setDeleted(false);
 
-        List<ItemCompra> itemDeVendas = new ArrayList<>();
-        double totalPurchaseAmount = 0.0;
+        List<ItemCompra> itensCompra = processarItensVenda(dto.getItems(), venda);
 
-        // 4. Processar cada item da compra
-        for (PurchaseItemRequestDTO itemDTO : purchaseRequestDTO.getItems()) {
-            Produto itemParaVenda = produtoService.findByCode(itemDTO.getCode())
-                    .orElseThrow(() -> new ResourceNotFoundException("Recurso com ID " + itemDTO.getResourceId() + " não encontrado."));
+        venda.setPurchaseItems(itensCompra);
+        venda.setTotal(calcularTotal(itensCompra));
 
-            // Verificar estoque
-            if (itemParaVenda.getTotalStock() < itemDTO.getQuantity()) {
-                throw new ErrorInProcessServiceException("Estoque insuficiente para o recurso: " + itemParaVenda.getName() + ". Disponível: " + itemParaVenda.getTotalStock() + ", Solicitado: " + itemDTO.getQuantity());
-            }
+        vendaRepository.save(venda);
+        return toResponseDTO(venda);
+    }
 
-            // Assumindo que o preço do item vem do primeiro item associado ao Resource
-            // Este é um ponto de atenção no seu modelo: `Item` tem `price`, `Resource` tem `stock` e uma lista de `Item`s.
-            // Para uma venda, o preço deve ser estável. Vamos pegar o preço do primeiro item do recurso.
-            // VOCÊ PODE PRECISAR REVISAR ESTA LÓGICA DE PREÇO SE UM RECURSO PUDER TER ITENS COM PREÇOS DIFERENTES.
-            Double unitPrice;
-            if (itemParaVenda.getLotes() != null && !itemParaVenda.getLotes().isEmpty()) {
-                unitPrice = itemParaVenda.getLotes().getFirst().getPrice();
-            } else {
-                throw new ErrorInProcessServiceException("Recurso " + itemParaVenda.getName() + " não possui itens associados para determinar o preço.");
-            }
+    @Transactional
+    public PurchaseResponseDTO updatePurchase(UUID id, VendaUpdateDTO dto) {
+        Venda venda = vendaRepository.findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada."));
 
-            // Criar PurchaseItem
-            ItemCompra itemDeVenda = new ItemCompra();
-            itemDeVenda.setItem(itemParaVenda); // Item de PurchaseItem é Resource no seu modelo
-            itemDeVenda.setQuantity(itemDTO.getQuantity());
-            itemDeVenda.setPurchase(venda); // Linka o item à compra
-
-            itemDeVendas.add(itemDeVenda);
-            totalPurchaseAmount += unitPrice * itemDTO.getQuantity();
-
-            // 5. Atualizar estoque do Resource
-            itemParaVenda.setTotalStock(itemParaVenda.getTotalStock() - itemDTO.getQuantity());
-            produtoRepository.save(itemParaVenda); // Persiste a alteração no estoque
+        if (venda.getStatus().equals(TypePurchaseStatus.CANCELLED.getStatus()) ||
+                venda.getStatus().equals(TypePurchaseStatus.COMPLETED.getStatus())) {
+            throw new ErrorInProcessServiceException("Não é possível alterar vendas Canceladas ou Concluídas.");
         }
 
-        venda.setPurchaseItems(itemDeVendas);
-        venda.setTotal(totalPurchaseAmount);
-        venda.setStatus(TypePurchaseStatus.COMPLETED); // Ou outro status final após sucesso
+        devolverEstoque(venda.getPurchaseItems());
 
-        // 6. Salvar a compra
-        Venda savedVenda = vendaRepository.save(venda);
+        venda.getPurchaseItems().clear();
 
-        // 7. Mapear para DTO de resposta
-        List<PurchaseItemResponseDTO> responseItems = savedVenda.getPurchaseItems().stream()
-                .map(pi -> new PurchaseItemResponseDTO(
-                        pi.getItem().getName(),
-                        pi.getItem().getCode(),
-                        pi.getQuantity(),
-                        // Recupere o preço unitário do item no momento da venda.
-                        // Aqui, novamente, estamos assumindo o preço do primeiro item do Resource.
-                        // Idealmente, PurchaseItem deveria ter um campo 'unitPriceAtSale' para evitar lookup.
-                        pi.getItem().getLotes().getFirst().getPrice()
+        if (dto.paymentMethod() != null) venda.setPaymentMethod(dto.paymentMethod());
+
+        if (dto.items() != null && !dto.items().isEmpty()) {
+            List<ItemCompra> novosItens = processarItensVenda(dto.items(), venda);
+            venda.getPurchaseItems().addAll(novosItens);
+            venda.setTotal(calcularTotal(novosItens));
+        }
+
+        vendaRepository.save(venda);
+        return toResponseDTO(venda);
+    }
+
+    @Transactional
+    public void updateStatus(UUID id, VendaStatusDTO dto) {
+        Venda venda = vendaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada."));
+
+        if (venda.getStatus().equals(TypePurchaseStatus.CANCELLED.getStatus())) {
+            throw new ErrorInProcessServiceException("Venda cancelada não pode mudar de status.");
+        }
+
+        TypePurchaseStatus status = TypePurchaseStatus.getStatusEnumById(dto.status());
+            if(status != null) {
+                if (status.equals(TypePurchaseStatus.CANCELLED)) {
+                    cancelPurchase(id);
+                    return;
+                }
+                venda.setStatus(status);
+                vendaRepository.save(venda);
+            }
+    }
+
+    @Transactional
+    public void cancelPurchase(UUID id) {
+        Venda venda = vendaRepository.findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada."));
+
+        if (venda.getStatus().equals(TypePurchaseStatus.CANCELLED.getStatus())) {
+            throw new ErrorInProcessServiceException("Venda já está cancelada.");
+        }
+
+        devolverEstoque(venda.getPurchaseItems());
+
+        venda.setStatus(TypePurchaseStatus.CANCELLED);
+        vendaRepository.save(venda);
+    }
+
+    private List<ItemCompra> processarItensVenda(List<PurchaseItemRequestDTO> itensSolicitados, Venda venda) {
+        List<ItemCompra> resultado = new ArrayList<>();
+
+        for (PurchaseItemRequestDTO solicitacao : itensSolicitados) {
+            Produto produto = produtoRepository.findByCode(solicitacao.getCode())
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado: " + solicitacao.getCode()));
+
+            if (produto.getTotalStock() < solicitacao.getQuantity()) {
+                throw new ErrorInProcessServiceException("Estoque insuficiente para: " + produto.getName());
+            }
+
+
+            double quantidadeRestanteParaBaixar = solicitacao.getQuantity();
+            double custoTotalDesteItem = 0.0;
+
+            List<Item> lotesDisponiveis = produto.getLotes().stream()
+                    .filter(l -> !Boolean.TRUE.equals(l.getDeleted()) && l.getQuantity() > 0)
+                    .sorted(Comparator.comparing(Item::getId)) // Ou getValidity se preferir
+                    .toList();
+
+            for (Item lote : lotesDisponiveis) {
+                if (quantidadeRestanteParaBaixar <= 0) break;
+
+                double qtdBaixarNesteLote = Math.min(quantidadeRestanteParaBaixar, lote.getQuantity());
+
+
+                lote.setQuantity(lote.getQuantity() - qtdBaixarNesteLote);
+                if (lote.getQuantity() == 0) {
+                    lote.setDeleted(true);
+                }
+                itemRepository.save(lote);
+
+
+                custoTotalDesteItem += (qtdBaixarNesteLote * lote.getPrice());
+                quantidadeRestanteParaBaixar -= qtdBaixarNesteLote;
+            }
+
+            produto.calculateTotalStock();
+            produtoRepository.save(produto);
+
+            ItemCompra itemCompra = new ItemCompra();
+            itemCompra.setItem(produto);
+            itemCompra.setQuantity(solicitacao.getQuantity());
+            itemCompra.setPurchase(venda);
+
+            resultado.add(itemCompra);
+        }
+        return resultado;
+    }
+
+
+    private void devolverEstoque(List<ItemCompra> itensParaDevolver) {
+        for (ItemCompra ic : itensParaDevolver) {
+            Produto produto = ic.getItem();
+
+            Optional<Item> loteAtivo = produto.getLotes().stream()
+                    .filter(l -> !Boolean.TRUE.equals(l.getDeleted()))
+                    .findFirst();
+
+            if (loteAtivo.isPresent()) {
+                Item lote = loteAtivo.get();
+                lote.setQuantity(lote.getQuantity() + ic.getQuantity());
+                itemRepository.save(lote);
+            } else {
+                Item novoLote = new Item();
+                novoLote.setProduto(produto);
+                novoLote.setQuantity((double) ic.getQuantity());
+                novoLote.setPrice(0.0);
+                novoLote.setDeleted(false);
+                ItemUtils.generateItemBatch(produto, novoLote);
+                produto.getLotes().add(novoLote);
+            }
+
+            produto.calculateTotalStock();
+            produtoRepository.save(produto);
+        }
+    }
+
+    private Double calcularTotal(List<ItemCompra> itens) {
+        return itens.stream()
+                .mapToDouble(i -> {
+                    double precoUnitario = i.getItem().getLotes().stream()
+                            .filter(l -> l.getQuantity() > 0)
+                            .findFirst()
+                            .map(Item::getPrice)
+                            .orElse(0.0);
+                    return precoUnitario * i.getQuantity();
+                })
+                .sum();
+    }
+
+    private UsuarioApi getAuthenticatedSeller() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return usuarioApiRepository.findByUser(usuarioBaseService.findByUsername(username))
+                .orElseThrow(() -> new ResourceNotFoundException("Vendedor não encontrado."));
+    }
+
+    private PurchaseResponseDTO toResponseDTO(Venda venda) {
+        List<PurchaseItemResponseDTO> itemsDTO = venda.getPurchaseItems().stream()
+                .map(i -> new PurchaseItemResponseDTO(
+                        i.getItem().getName(),
+                        i.getItem().getCode(),
+                        i.getQuantity(),
+                        i.getItem().getLotes().isEmpty() ? 0.0 : i.getItem().getLotes().getFirst().getPrice()
                 ))
                 .collect(Collectors.toList());
 
         return new PurchaseResponseDTO(
-                savedVenda.getId(),
-                savedVenda.getTotal(),
-                savedVenda.getPaymentMethod(),
-                savedVenda.getSeller().getUser().getUsername(), // Assumindo que BaseUser tem getUsername()
-                savedVenda.getClient().getName(), // Assumindo que Client tem getName()
-                savedVenda.getStatus(), // Usa o getter transient
-                LocalDateTime.now(), // Ou converta Date para LocalDateTime
-                responseItems
+                venda.getId(),
+                venda.getTotal(),
+                venda.getPaymentMethod(),
+                venda.getSeller().getUser().getUsername(),
+                venda.getClient().getName(),
+                venda.getStatus(),
+                venda.getRealizationDate() != null ? LocalDateTime.now() : null,
+                itemsDTO
         );
     }
-
 }
