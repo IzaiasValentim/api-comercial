@@ -1,0 +1,587 @@
+@startuml
+skinparam componentStyle uml2
+package "Domain" {
+    class Acesso {
+        - long id
+        - UsuarioApi user
+        - Date date
+        + Acesso(UsuarioApi user, Date date)
+        + Acesso()
+        + getId(): long
+        + setId(long id): void
+        + getUser(): UsuarioApi
+        + setUser(UsuarioApi user): void
+        + getDate(): Date
+        + setDate(Date date): void
+    }
+    class Cliente {
+        - Integer id
+        - String name
+        - String email
+        - String identificationNumber
+        - String address
+        - String phoneNumber
+        - String phoneNumberReserve
+        - String payment
+        - Boolean active
+        - Boolean isDeleted
+        + Cliente()
+        + Cliente(String name, String email, String identificationNumber, String address, String phoneNumber, String phoneNumberReserve, String payment, Boolean isDeleted)
+        + getPayment(): String
+        + setPayment(String payment): void
+        + getId(): Integer
+        + setId(Integer id): void
+        + getName(): String
+        + setName(String name): void
+        + getEmail(): String
+        + setEmail(String email): void
+        + getIdentificationNumber(): String
+        + setIdentificationNumber(String identificationNumber): void
+        + getAddress(): String
+        + setAddress(String address): void
+        + getPhoneNumber(): String
+        + setPhoneNumber(String phoneNumber): void
+        + getPhoneNumberReserve(): String
+        + setPhoneNumberReserve(String phoneNumberReserve): void
+        + getActive(): Boolean
+        + setActive(Boolean active): void
+        + getDeleted(): Boolean
+        + setDeleted(Boolean deleted): void
+    }
+    class Item {
+        - long id
+        - Double price
+        - Double quantity
+        - String batch
+        - Date validity
+        - Boolean hasValidity
+        - Boolean deleted
+        - Produto produto
+        + Item()
+        + Item(ItemAddStockDTO dto, Produto produto)
+        + Item(ItemDTO itemDto)
+        + getId(): long
+        + setId(long id): void
+        + getPrice(): Double
+        + setPrice(Double price): void
+        + getQuantity(): Double
+        + setQuantity(Double quantity): void
+        + getBatch(): String
+        + setBatch(String batch): void
+        + getValidity(): Date
+        + setValidity(Date validity): void
+        + getHasValidity(): Boolean
+        + setHasValidity(Boolean hasValidity): void
+        + getDeleted(): Boolean
+        + setDeleted(Boolean deleted): void
+        + getProduto(): Produto
+        + setProduto(Produto produto): void
+    }
+    class ItemCompra {
+        - UUID id
+        - Produto item
+        - Venda venda
+        - long quantity
+        + ItemCompra(Produto item, long quantity)
+        + ItemCompra()
+        + getId(): UUID
+        + setId(UUID id): void
+        + getItem(): Produto
+        + setItem(Produto item): void
+        + getPurchase(): Venda
+        + setPurchase(Venda venda): void
+        + getQuantity(): long
+        + setQuantity(long quantity): void
+    }
+    class Produto {
+        - Long id
+        - String code
+        - String name
+        - String description
+        - String category
+        - Double totalStock
+        - Boolean active
+        - List<Item> lotes
+        + Produto()
+        + Produto(ItemDTO dto)
+        + calculateTotalStock(): void
+        + getId(): Long
+        + setId(Long id): void
+        + getCode(): String
+        + setCode(String code): void
+        + getName(): String
+        + setName(String name): void
+        + getDescription(): String
+        + setDescription(String description): void
+        + getCategory(): String
+        + setCategory(String category): void
+        + getTotalStock(): Double
+        + setTotalStock(Double totalStock): void
+        + getActive(): Boolean
+        + setActive(Boolean active): void
+        + getLotes(): List<Item>
+        + setLotes(List<Item> lotes): void
+    }
+    class RefreshToken {
+        - long id
+        - UsuarioBase user
+        - String token
+        - Instant expiryDate
+        + RefreshToken()
+        + getId(): long
+        + setId(long id): void
+        + getUser(): UsuarioBase
+        + setUser(UsuarioBase user): void
+        + getToken(): String
+        + setToken(String token): void
+        + getExpiryDate(): Instant
+        + setExpiryDate(Instant expiryDate): void
+    }
+    class Role {
+        - Long id
+        - String name
+        + Role(String name)
+        + Role()
+        + getId(): Long
+        + setId(Long id): void
+        + getName(): String
+        + setName(String name): void
+    }
+    class UsuarioApi {
+        - long id
+        - UsuarioBase user
+        - String phone
+        - String address
+        - LocalDate admissionDate
+        - LocalDate shutdowsDate
+        - Boolean isAdmin
+        - Boolean isActive
+        - Boolean isDeleted
+        + UsuarioApi(String email, String username, String CPF, String phone, String address, LocalDate admissionDate, LocalDate shutdowsDate, Boolean isActive, Boolean isDeleted)
+        + UsuarioApi()
+        + getId(): long
+        + setId(long id): void
+        + getUser(): UsuarioBase
+        + setUser(UsuarioBase user): void
+        + getPhone(): String
+        + setPhone(String phone): void
+        + getAddress(): String
+        + setAddress(String address): void
+        + getAdmissionDate(): LocalDate
+        + setAdmissionDate(LocalDate admissionDate): void
+        + getShutdowsDate(): LocalDate
+        + setShutdowsDate(LocalDate shutdowsDate): void
+        + getAdmin(): Boolean
+        + setIsAdmin(): void
+        + getIsActive(): Boolean
+        + setIsActive(Boolean active): void
+        + getDeleted(): Boolean
+        + setDeleted(Boolean deleted): void
+    }
+    class UsuarioBase {
+        - long id
+        - String username
+        - String CPF
+        - String email
+        - String password
+        - Set<Role> roles
+        + UsuarioBase(String username, String CPF, String email, String password)
+        + UsuarioBase()
+        + getId(): long
+        + setId(long id): void
+        + getUsername(): String
+        + setUsername(String username): void
+        + getCPF(): String
+        + setCPF(String CPF): void
+        + getEmail(): String
+        + setEmail(String email): void
+        + getPassword(): String
+        + setPassword(String password): void
+        + getRoles(): Set<Role>
+        + setRoles(Set<Role> roles): void
+    }
+    class Venda {
+        - UUID id
+        - Double total
+        - String paymentMethod
+        - UsuarioApi seller
+        - Cliente cliente
+        - int status
+        - Date realizationDate
+        - Date hiredDate
+        - Boolean isDeleted
+        - List<ItemCompra> itemCompras
+        - int statusCompraId
+        + Venda(Double total, String paymentMethod, UsuarioApi seller, Cliente cliente, int status, Date realizationDate, Date hiredDate, Boolean isDeleted)
+        + Venda()
+        + getId(): UUID
+        + setId(UUID id): void
+        + getTotal(): Double
+        + setTotal(Double total): void
+        + getPaymentMethod(): String
+        + setPaymentMethod(String paymentMethod): void
+        + getSeller(): UsuarioApi
+        + setSeller(UsuarioApi seller): void
+        + getClient(): Cliente
+        + setClient(Cliente cliente): void
+        + getStatus(): String
+        + setStatus(TypePurchaseStatus status): void
+        + getHiredDate(): Date
+        + setHiredDate(Date efetivatedDate): void
+        + getDeleted(): Boolean
+        + setDeleted(Boolean deleted): void
+        + getPurchaseItems(): List<ItemCompra>
+        + setPurchaseItems(List<ItemCompra> itemCompras): void
+        + getRealizationDate(): Date
+        + setRealizationDate(Date realizationDate): void
+        + getStatusCompraId(): int
+        + setStatusCompraId(int statusCompraId): void
+    }
+    package "Enums" as Enums{
+        enum TypePurchaseStatus {
+            RECEIVED
+            IN_PROGRESS
+            READY
+            COMPLETED
+            CANCELLED
+            - int id
+            - String status
+            + getStatusById(int id): String
+            + getStatusEnumById(int id): TypePurchaseStatus
+            + getStatusEnumByStatus(String status): TypePurchaseStatus
+            + getId(): int
+            + getStatus(): String
+        }
+        enum TypeRoles {
+            ADMIN
+            MANAGER
+            SELLER
+            INTERN
+            - int id
+            - int level
+            - String name
+            + getLevelById(int id): int
+            + getNameById(int id): String
+            + getTypeById(int id): TypeRoles
+            + getId(): int
+            + getLevel(): int
+            + getName(): String
+        }
+    }
+    package "DTO" as DTOS {
+        package "ApiUser" {
+            class ApiUserRegisterDTO <<record>> {
+                + String username
+                + String CPF
+                + String email
+                + String password
+                + String phone
+                + String address
+                + int role
+                + LocalDate admissionDate
+            }
+            class ApiUserReturnDTO {
+                - String username
+                - String email
+                - String phone
+                - String address
+                - LocalDate admissionDate
+                - Boolean isAdmin
+                - Boolean isActive
+                - Boolean isDeleted
+                - Set<Role> roles
+                + ApiUserReturnDTO(UsuarioApi usuarioApi)
+                + getUsername(): String
+                + setUsername(String username): void
+                + getEmail(): String
+                + setEmail(String email): void
+                + getPhone(): String
+                + setPhone(String phone): void
+                + getAddress(): String
+                + setAddress(String address): void
+                + getAdmissionDate(): LocalDate
+                + setAdmissionDate(LocalDate admissionDate): void
+                + getAdmin(): Boolean
+                + setAdmin(Boolean admin): void
+                + getActive(): Boolean
+                + setActive(Boolean active): void
+                + getDeleted(): Boolean
+                + setDeleted(Boolean deleted): void
+                + getRoles(): Set<Role>
+                + setRoles(Set<Role> roles): void
+            }
+            class RequestRefreshTokenDTO {
+                - String refreshToken
+                + getRefreshToken(): String
+                + setRefreshToken(String refreshToken): void
+            }
+            class ResponseRefreshTokenDTO {
+                - String token
+                - String refreshToken
+                - String tokenType
+                + ResponseRefreshTokenDTO(String token, String refreshToken)
+                + getToken(): String
+                + setToken(String token): void
+                + getRefreshToken(): String
+                + setRefreshToken(String refreshToken): void
+                + getTokenType(): String
+                + setTokenType(String tokenType): void
+            }
+            class UserAuthDTO {
+                - String username
+                - String password
+                + getUsername(): String
+                + setUsername(String username): void
+                + getPassword(): String
+                + setPassword(String password): void
+            }
+        }
+        package "Client" {
+            class ClientDTO {
+                - String name
+                - String email
+                - String identificationNumber
+                - String address
+                - String phoneNumber
+                - String phoneNumberReserve
+                - String payment
+                - String status
+                - Boolean isDeleted
+                + ClientDTO()
+                + ClientDTO(String name, String email, String identificationNumber, String address, String phoneNumber, String phoneNumberReserve, String payment, String status, Boolean isDeleted)
+                + ClientDTO(Cliente cliente)
+                + registerDTOToClient(): Cliente
+                + getName(): String
+                + setName(String name): void
+                + getEmail(): String
+                + setEmail(String email): void
+                + getIdentificationNumber(): String
+                + setIdentificationNumber(String identificationNumber): void
+                + getAddress(): String
+                + setAddress(String address): void
+                + getPhoneNumber(): String
+                + setPhoneNumber(String phoneNumber): void
+                + getPhoneNumberReserve(): String
+                + setPhoneNumberReserve(String phoneNumberReserve): void
+                + getPayment(): String
+                + setPayment(String payment): void
+                + getStatus(): String
+                + setStatus(String status): void
+                + getDeleted(): Boolean
+                + setDeleted(Boolean deleted): void
+            }
+            class ClientIdentification <<record>> {
+                + String identificationNumber
+            }
+            class ClientRegisterDTO {
+                - String name
+                - String email
+                - String identificationNumber
+                - String address
+                - String phoneNumber
+                - String phoneNumberReserve
+                - String payment
+                - String status
+                - Boolean isDeleted
+                + ClientRegisterDTO()
+                + ClientRegisterDTO(String name, String email, String identificationNumber, String address, String phoneNumber, String phoneNumberReserve, String payment, String status)
+                + ClientRegisterDTO(Cliente cliente)
+                + registerDTOToClient(): Cliente
+                + getName(): String
+                + setName(String name): void
+                + getEmail(): String
+                + setEmail(String email): void
+                + getIdentificationNumber(): String
+                + setIdentificationNumber(String identificationNumber): void
+                + getAddress(): String
+                + setAddress(String address): void
+                + getPhoneNumber(): String
+                + setPhoneNumber(String phoneNumber): void
+                + getPhoneNumberReserve(): String
+                + setPhoneNumberReserve(String phoneNumberReserve): void
+                + getPayment(): String
+                + setPayment(String payment): void
+                + getStatus(): String
+                + setStatus(String status): void
+                + getDeleted(): Boolean
+                + setDeleted(Boolean deleted): void
+            }
+        }
+        package "Communication" {
+            class CommunicationUpdateDTO <<record>> {
+                + long id
+                + String message
+                + int scope
+                + LocalDate endDate
+            }
+        }
+        package "Item" {
+            class ItemAddStockDTO {
+                - String code
+                - Double price
+                - Double quantity
+                - Date validity
+                - Boolean hasValidity
+                + ItemAddStockDTO()
+                + getValidity(): Date
+                + setValidity(Date validity): void
+                + getCode(): String
+                + setCode(String code): void
+                + getPrice(): Double
+                + setPrice(Double price): void
+                + getQuantity(): Double
+                + setQuantity(Double quantity): void
+                + getHasValidity(): Boolean
+                + setHasValidity(Boolean hasValidity): void
+            }
+            class ItemDTO <<record>> {
+                + String name
+                + String type
+                + Double price
+                + Double quantity
+                + String code
+                + Date validity
+                + Boolean hasValidity
+            }
+            class ItemStockDTO {
+                - Long id
+                - String nome
+                - Double price
+                - String itemCode
+                - Double stock
+                - List<Item> itens
+                + ItemStockDTO(Long id, String nome, Double price, String itemCode, Double stock, List<Item> itens)
+                + getId(): Long
+                + setId(Long id): void
+                + getNome(): String
+                + setNome(String nome): void
+                + getPrice(): Double
+                + setPrice(Double price): void
+                + getItemCode(): String
+                + setItemCode(String itemCode): void
+                + getStock(): Double
+                + setStock(Double stock): void
+                + getItens(): List<Item>
+                + setItens(List<Item> itens): void
+            }
+        }
+        package "Produto" {
+            class ProdutoDetailDTO <<record>> {
+                + Long id
+                + String code
+                + String name
+                + String category
+                + Double totalStock
+                + List<BatchDTO> batches
+            }
+            class ProdutoResponseDTO <<record>> {
+                + Long id
+                + String code
+                + String name
+                + String category
+                + Double price
+                + Double totalStock
+                + Boolean active
+            }
+        }
+        package "Purchase" {
+            class PurchaseItemRequestDTO {
+                - Long resourceId
+                - String code
+                - long quantity
+                + getResourceId(): Long
+                + setResourceId(Long resourceId): void
+                + getCode(): String
+                + setCode(String code): void
+                + getQuantity(): long
+                + setQuantity(long quantity): void
+            }
+            class PurchaseItemResponseDTO {
+                - String itemName
+                - String itemCode
+                - long quantity
+                - Double unitPrice
+                + PurchaseItemResponseDTO(String itemName, String itemCode, long quantity, Double unitPrice)
+                + getItemName(): String
+                + getItemCode(): String
+                + getQuantity(): long
+                + getUnitPrice(): Double
+            }
+            class PurchaseListDTO <<record>> {
+                + UUID id
+                + String clientName
+                + String clientCpf
+                + Double total
+                + String status
+                + LocalDateTime date
+                + String sellerName
+            }
+            class PurchaseRequestDTO {
+                - String paymentMethod
+                - String clientIdentificationNumber
+                - List<PurchaseItemRequestDTO> items
+                + getPaymentMethod(): String
+                + setPaymentMethod(String paymentMethod): void
+                + getClientIdentificationNumber(): String
+                + setClientIdentificationNumber(String clientIdentificationNumber): void
+                + getItems(): List<PurchaseItemRequestDTO>
+                + setItems(List<PurchaseItemRequestDTO> items): void
+            }
+            class PurchaseResponseDTO {
+                - UUID id
+                - Double total
+                - String paymentMethod
+                - String sellerUsername
+                - String clientName
+                - String status
+                - LocalDateTime realizationDate
+                - List<PurchaseItemResponseDTO> items
+                + PurchaseResponseDTO(UUID id, Double total, String paymentMethod, String sellerUsername, String clientName, String status, LocalDateTime realizationDate, List<PurchaseItemResponseDTO> items)
+                + getId(): UUID
+                + getTotal(): Double
+                + getPaymentMethod(): String
+                + getSellerUsername(): String
+                + getClientName(): String
+                + getStatus(): String
+                + getRealizationDate(): LocalDateTime
+                + getItems(): List<PurchaseItemResponseDTO>
+            }
+            class VendaStatusDTO <<record>> {
+                + Integer status
+            }
+            class VendaUpdateDTO <<record>> {
+                + String paymentMethod
+                + List<PurchaseItemRequestDTO> items
+            }
+        }
+    }
+
+    ' Notas descritivas '
+    note left of UsuarioBase
+        <i><b>UsuarioBase</b> é a entidade primária da configuração de segurança feita pelo Spring-Security.</i>
+        <i>Como é preciso o instânciamento e manuseio de informações particulares apenas de um UsuarioBase</i>
+        <i>a representação do usuário da aplicação foi dividida em duas entidades: UsuarioApi que é agragado a um UsuarioBase.</i>
+        <i>As especializações dos usuários são tratadas com o <u>modelo baseado em papeis("Roles")</u>.</i>
+    end note
+
+    note left of DTOS
+        <i><size:18>Os DTOs (Data Transfer Objects) em são aplicados para entradas e saídas de dados mais controladas e seguras.</size></i>
+        <i><size:18>Apesar de não terem relacionmento direto com as entidades de persistência, são bastante utilizadas na camada Service e Controller.</size></i>
+    end note
+
+    note bottom of Enums
+        <i><size:18>Enums aplicados para centralizar os papéis existentes para usuários e controle de status de uma venda.</size></i>
+    end note
+
+    ' Relacionamentos '
+    Acesso "1" -- "1" UsuarioApi
+    Item "*" --* "1" Produto
+    ItemCompra "*" -- "1" Produto
+    ItemCompra "*" --* "1" Venda
+    RefreshToken "1" --o "1" UsuarioBase
+    UsuarioApi "1" *-- "1" UsuarioBase
+    UsuarioBase "*" -- "*" Role
+    Venda "*" *-- "1" UsuarioApi : seller
+    Venda "*" *-- "1" Cliente
+}
+@enduml
