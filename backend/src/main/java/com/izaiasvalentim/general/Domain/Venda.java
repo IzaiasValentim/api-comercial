@@ -39,9 +39,11 @@ public class Venda {
 
     private Boolean isDeleted;
 
-    @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference
     private List<ItemCompra> itemCompras;
+
+    private int statusCompraId;
 
     public Venda(Double total, String paymentMethod, UsuarioApi seller, Cliente cliente, int status,
                  Date realizationDate, Date hiredDate, Boolean isDeleted) {
@@ -108,17 +110,9 @@ public class Venda {
             this.status = 0;
         } else {
             this.status = status.getId();
+            this.statusCompraId = status.getId();
         }
     }
-
-    public Date getRealizationDate() {
-        return realizationDate;
-    }
-
-    public void setRealizationDate(Date realizationDate) {
-        this.realizationDate = realizationDate;
-    }
-
     public Date getHiredDate() {
         return hiredDate;
     }
@@ -141,5 +135,25 @@ public class Venda {
 
     public void setPurchaseItems(List<ItemCompra> itemCompras) {
         this.itemCompras = itemCompras;
+    }
+
+    public Date getRealizationDate() {
+        return realizationDate;
+    }
+
+    public void setRealizationDate(Date realizationDate) {
+        this.realizationDate = realizationDate;
+    }
+
+    public int getStatusCompraId() {
+        return statusCompraId;
+    }
+
+    public void setStatusCompraId(int statusCompraId) {
+        if (this.getStatus() == null) {
+            this.statusCompraId = 0;
+        } else {
+            this.statusCompraId = this.status;
+        }
     }
 }

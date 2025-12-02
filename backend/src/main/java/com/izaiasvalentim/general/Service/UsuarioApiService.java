@@ -15,6 +15,7 @@ import com.izaiasvalentim.general.Domain.UsuarioBase;
 import com.izaiasvalentim.general.Domain.DTO.ApiUser.ApiUserRegisterDTO;
 import com.izaiasvalentim.general.Domain.DTO.ApiUser.ApiUserReturnDTO;
 import com.izaiasvalentim.general.Repository.UsuarioApiRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioApiService {
@@ -28,6 +29,7 @@ public class UsuarioApiService {
         this.usuarioBaseService = usuarioBaseService;
     }
 
+    @Transactional
     public ApiUserReturnDTO registerUser(ApiUserRegisterDTO dto) {
         try {
             validateUserUniqueFields(dto);
