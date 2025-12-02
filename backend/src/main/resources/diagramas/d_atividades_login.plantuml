@@ -1,0 +1,29 @@
+@startuml
+skinparam componentStyle uml2
+title Fluxo de Login no Sistema
+
+start
+
+:Usuário abre a tela de login;
+:Usuário informa e-mail e senha;
+
+:Sistema valida campos;
+
+if (Campos válidos?) then (Sim)
+    :Sistema verifica credenciais;
+
+    if (Credenciais válidas?) then (Sim)
+        :Redireciona para dashboard relativa às suas permissões;
+        stop
+    else (Não)
+        :Exibe mensagem de insucesso no login;
+        :Retorna à tela de login;
+        stop
+    endif
+
+else (Não)
+    :Exibe erro e retorna à tela de login;
+    stop
+endif
+
+@enduml

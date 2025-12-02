@@ -1,0 +1,31 @@
+@startuml
+skinparam componentStyle uml2
+title Processo de Cadastro de um Produto
+
+start
+
+:Usuário acessa a tela de cadastro de produto;
+:Usuário preenche dados do produto
+(nome, categoria, descrição, preço, quantidade, etc);
+
+:Sistema valida os campos;
+
+if (Campos válidos?) then (Sim)
+    :Verificar se o produto já existe no sistema;
+
+    if (Produto já existe?) then (Sim)
+        :Exibir erro "Produto já cadastrado";
+        stop
+    else (Não)
+        :Salvar produto no banco de dados;
+        :Exibir mensagem de sucesso;
+        stop
+    endif
+
+else (Não)
+    :Exibir erros de validação;
+    :Retornar ao formulário;
+    stop
+endif
+
+@enduml
