@@ -1,0 +1,55 @@
+@startuml
+title Arquitetura Lógica do Sistema - API Comercial
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+
+' Cores para diferenciar as camadas
+skinparam packageBackgroundColor<<Presentation>> E6F5FF
+skinparam packageBackgroundColor<<Business>> FFFFCC
+skinparam packageBackgroundColor<<Data>> E6FFE6
+skinparam componentBackgroundColor white
+
+actor "Cliente\n(Frontend/Mobile)" as User
+
+package "Aplicação Backend (Spring Boot)" {
+
+    package "Camada de Apresentação (Controller)" <<Presentation>> {
+        component "REST Controllers\n(Endpoints API)" as Controllers
+        component "DTOs\n(Data Transfer Objects)" as DTOs
+        note right of Controllers: Recebe requisições HTTP\ne valida dados de entrada
+    }
+
+    package "Camada de Negócio (Service)" <<Business>> {
+        component "Services\n(Regras de Negócio)" as Services
+        component "Domain Models\n(Entidades JPA)" as Models
+        note right of Services: Processa lógica (ex: Cálculos,\nValidação de Estoque)
+    }
+
+    package "Camada de Persistência (Repository)" <<Data>> {
+        component "Repositories\n(Interfaces Spring Data)" as Repositories
+        note right of Repositories: Abstração do acesso\nao Banco de Dados
+    }
+    
+    ' Componentes Transversais
+    component "Segurança\n(Spring Security/JWT)" as Security
+    component "Utils & Config" as Utils
+}
+
+database "Banco de Dados\n(MySQL/Postgres)" as DB
+
+' Fluxo de Comunicação
+User <--> Controllers : JSON / HTTPS
+Controllers --> Services : Chama método
+Services --> Repositories : Solicita dados
+Repositories <--> DB : SQL / JDBC
+
+' Dependências das Entidades
+Controllers ..> DTOs : Usa
+Services ..> Models : Manipula
+Repositories ..> Models : Persiste
+
+' Segurança protege a entrada
+User .> Security : Autenticação
+Security -right-> Controllers : Intercepta
+
+@enduml
