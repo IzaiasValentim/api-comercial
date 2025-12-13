@@ -26,6 +26,7 @@ public class ItemController {
 
     // 1. Listar Produtos (Paginado) - Substitui getAllAgregated
     @GetMapping("getAllAgregated")
+    @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN') || hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<List<ProdutoResponseDTO>> getAllProducts(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "quantidade", defaultValue = "10") int quantidade) {
@@ -35,6 +36,7 @@ public class ItemController {
 
     // 2. Detalhes do Produto (Com lotes) - Substitui itemStockByCode
     @GetMapping(value = "itemStockByCode")
+    @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN') || hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<ProdutoDetailDTO> getProductDetails(@RequestParam String code) {
         return ResponseEntity.ok(itemService.getProductDetailsByCode(code));
     }
@@ -63,6 +65,7 @@ public class ItemController {
 
     // 6. Buscar por Nome (Opcional, para autocomplete)
     @GetMapping(value = "allByName")
+    @PreAuthorize("hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN') || hasAuthority('SCOPE_SELLER')")
     public ResponseEntity<List<ProdutoResponseDTO>> searchByName(@RequestParam String name) {
         return ResponseEntity.ok(itemService.searchProductsByName(name));
     }

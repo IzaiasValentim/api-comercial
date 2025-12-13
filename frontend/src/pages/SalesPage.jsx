@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SalesList from '../components/Sales/SalesList';
 import SalesForm from '../components/Sales/SalesForm';
+import { useAuth } from '../contexts/AuthContext';
 
 export const SalesPage = () => {
+    
     const [activeTab, setActiveTab] = useState('list'); // 'list' or 'create'
+    const { hasPermission } = useAuth();
 
     const handleSaleSuccess = () => {
         setActiveTab('list');
@@ -35,12 +38,17 @@ export const SalesPage = () => {
                     >
                         Histórico de Vendas
                     </button>
+
+                    {/* O botão só aparece se for GERENTE ou VENDEDOR */}
+                    {hasPermission(['MANAGER', 'SELLER']) && (
                     <button
                         className={`py-2 px-4 font-medium ${activeTab === 'create' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700'}`}
                         onClick={() => setActiveTab('create')}
                     >
                         Nova Venda
                     </button>
+                    )}
+                    
                 </div>
 
                 {/* Content */}

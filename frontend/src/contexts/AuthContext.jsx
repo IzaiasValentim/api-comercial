@@ -1,10 +1,8 @@
-// src/contexts/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext();
 
-// Botar em uma classe utilitaria
 const decodeToken = (token) => {
   try {
     if (!token) return null;
@@ -25,10 +23,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const recoveredToken = localStorage.getItem('authToken');
     
-   if (recoveredToken) {
+    if (recoveredToken) {
       const decoded = decodeToken(recoveredToken);
       if (decoded && decoded.sub) {
-        return { username: decoded.sub };
+        const rawRole = decoded.scope || ''; 
+        const role = rawRole.replace('SCOPE_', ''); 
+
+        return { 
+          username: decoded.sub,
+          role: role
+        };
       }
     }
     return null;
@@ -46,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     setLoading(true);
     try {
-      const response = await api.post('/authenticate/login/', {
+      const response = await api.post('/authenticate/login/', { 
         username,
         password
       });
@@ -57,7 +61,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('refreshToken', refreshToken);
       
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser({ username }); 
+      
+      const decoded = decodeToken(token);
+      const rawRole = decoded.scope || '';
+      const role = rawRole.replace('SCOPE_', '');
+
+      setUser({ 
+        username,
+        role: role
+      }); 
       
       return true;
     } catch (error) {
@@ -75,13 +87,19 @@ export const AuthProvider = ({ children }) => {
     delete api.defaults.headers.common['Authorization'];
   };
 
+  const hasPermission = (allowedRoles) => {
+    if (!user || !user.role) return false;
+    return allowedRoles.includes(user.role);
+  };
+
   return (
     <AuthContext.Provider value={{ 
       authenticated: !!user, 
       user, 
       loading, 
       login, 
-      logout 
+      logout,
+      hasPermission
     }}>
       {children}
     </AuthContext.Provider>

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 
 export const DashboardPage = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, hasPermission } = useAuth();
 
   return (
     <div className="flex h-screen bg-light-gray">
@@ -21,18 +21,21 @@ export const DashboardPage = () => {
           </Link>
           
           {/* Novo Link para Usuários */}
+          { hasPermission( ['MANAGER', 'ADMINISTRATOR'] )  && (
           <Link to="/users" className="block rounded-md px-4 py-2 text-dark-gray hover:bg-gray-100 hover:text-primary transition-colors">
             Usuários
           </Link>
-
+          )}
           <Link to="/products" className="block rounded-md px-4 py-2 text-dark-gray hover:bg-gray-100 hover:text-primary transition-colors">
             Produtos
           </Link>
           
+          { hasPermission( ['MANAGER', 'SELLER'] )  && (
           <Link to="/clients" className="block rounded-md px-4 py-2 text-dark-gray hover:bg-gray-100 hover:text-primary transition-colors">
             Clientes
           </Link>
-
+          )}
+          
           <Link to="/sales" className="block rounded-md px-4 py-2 text-dark-gray hover:bg-gray-100 hover:text-primary transition-colors">
             Vendas
           </Link>

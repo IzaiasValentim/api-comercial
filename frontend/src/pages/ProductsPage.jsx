@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export const ProductsPage = () => {
   // --- ESTADOS GERAIS ---
@@ -19,6 +20,8 @@ export const ProductsPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productDetails, setProductDetails] = useState(null);
   
+  const { hasPermission } = useAuth();
+
   // Estado único para formulários (Create e Add Stock)
   const [formData, setFormData] = useState({
     name: '',
@@ -116,7 +119,7 @@ export const ProductsPage = () => {
         validity: formData.hasValidity && formData.validity ? new Date(formData.validity).toISOString() : null,
         hasValidity: formData.hasValidity,
       };
-console.log(payload.code)
+
       await api.post('/api/items/addStockByCode/', payload);
       alert('Estoque adicionado com sucesso!');
       setShowStockModal(false);
@@ -129,11 +132,12 @@ console.log(payload.code)
   };
 
   // --- AÇÃO: VER DETALHES (LOTES) ---
-  const openDetailsModal = async (code) => {
+  const openDetailsModal = async (product) => {
     try {
-      const response = await api.get(`/api/items/itemStockByCode?code=${code}`);
+      const response = await api.get(`/api/items/itemStockByCode?code=${product.code}`);
       setProductDetails(response.data); // Retorna ItemStockDTO com lista de 'itens' (lotes)
       setShowDetailsModal(true);
+      setSelectedProduct(product);
     } catch (err) {
       alert('Erro ao carregar detalhes do produto.' + err.message);
     }
@@ -145,12 +149,14 @@ console.log(payload.code)
       try {
         await api.delete(`/api/items/deleteByBatch?batch=${batch}`);
         alert('Lote removido!');
+        fetchProducts();
         // Recarrega os detalhes para atualizar a lista de lotes
+
         if (productDetails) {
-             openDetailsModal(productDetails.code);
+             openDetailsModal(productDetails);
         }
         // Recarrega a lista principal para atualizar o estoque total
-        fetchProducts();
+        
       } catch (err) {
         console.error(err);
         alert('Erro ao excluir lote.');
@@ -173,12 +179,14 @@ console.log(payload.code)
       <main className="flex-1 overflow-y-auto p-8 relative">
         <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl font-bold text-dark-gray">Produtos</h2>
+            { hasPermission( ['MANAGER', 'INTERN'] )  && (
             <button 
                 onClick={() => setShowCreateModal(true)}
                 className="bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded transition-colors"
             >
                 + Novo Produto
             </button>
+            )}
         </div>
 
         {/* LISTA PRINCIPAL */}
@@ -210,6 +218,8 @@ console.log(payload.code)
                         </span>
                     </td>
                     <td className="p-4 text-center flex justify-center gap-2">
+                       
+                       { hasPermission( ['MANAGER' , 'INTERN' ] ) && (
                       <button 
                         onClick={() => openStockModal(product)}
                         className="text-green-600 hover:text-green-800 font-medium text-sm border border-green-200 px-2 py-1 rounded hover:bg-green-50"
@@ -217,8 +227,10 @@ console.log(payload.code)
                       >
                         + Estoque
                       </button>
+                       )}
+
                       <button 
-                        onClick={() => openDetailsModal(product.code)}
+                        onClick={() => openDetailsModal(product)}
                         className="text-primary hover:text-primary-hover font-medium text-sm border border-blue-200 px-2 py-1 rounded hover:bg-blue-50"
                         title="Ver Lotes e Excluir"
                       >
@@ -241,7 +253,8 @@ console.log(payload.code)
         )}
 
         {/* --- MODAL 1: CRIAR NOVO PRODUTO --- */}
-        {showCreateModal && (
+        {/* Só permite o gerente e interno  */}
+        { ( showCreateModal && hasPermission( ['MANAGER', 'INTERN'] ) ) && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 m-4">
               <div className="flex justify-between items-center mb-4">
@@ -270,7 +283,9 @@ console.log(payload.code)
         )}
 
         {/* --- MODAL 2: ADICIONAR ESTOQUE (NOVO LOTE) --- */}
-        {showStockModal && (
+        {/* Só permite o gerente e interno  */}
+
+        { (showStockModal && hasPermission( ['MANAGER', 'INTERN'] ) ) && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 m-4">
               <div className="flex justify-between items-center mb-4">
@@ -308,7 +323,7 @@ console.log(payload.code)
               <div className="mb-4 grid grid-cols-3 gap-4 bg-secondary p-3 rounded">
                 <div><span className="block text-xs text-medium-gray">Código Principal</span><span className="font-mono font-bold">{productDetails.code}</span></div>
                 <div><span className="block text-xs text-medium-gray">Estoque Total</span><span className="font-bold">{productDetails.totalStock}</span></div>
-                <div><span className="block text-xs text-medium-gray">Preço Ref.</span><span className="font-bold">R$ {productDetails.price}</span></div>
+                <div><span className="block text-xs text-medium-gray">Preço Ref.</span><span className="font-bold">R$ { selectedProduct.price }</span></div>
               </div>
 
               <h4 className="font-bold text-dark-gray mb-2">Lotes Disponíveis</h4>
@@ -330,6 +345,9 @@ console.log(payload.code)
                          <td className="p-2">{batch_item.quantity}</td>
                          <td className="p-2">R$ {batch_item.price}</td>
                          <td className="p-2">{batch_item.validity ? new Date(batch_item.validity).toLocaleDateString() : '-'}</td>
+                         
+                         {/* Só permite o gerente e interno excluir */}
+                         {hasPermission( ['MANAGER', 'INTERN'] ) && (
                          <td className="p-2 text-right">
                            <button 
                              onClick={() => handleDeleteBatch(batch_item.batch)}
@@ -338,6 +356,8 @@ console.log(payload.code)
                              Excluir
                            </button>
                          </td>
+                         )}
+
                       </tr>
                     )) : (
                       <tr><td colSpan="5" className="p-4 text-center text-gray-500">Nenhum lote encontrado.</td></tr>

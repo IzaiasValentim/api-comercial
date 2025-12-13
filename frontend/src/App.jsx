@@ -9,22 +9,7 @@ import { ProductsPage } from './pages/ProductsPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { SalesPage } from './pages/SalesPage';
 import { SaleDetailsPage } from './pages/SaleDetailsPage';
-
-
-// Componente para proteger rotas privadas
-const PrivateRoute = ({ children }) => {
-  const { authenticated, loading } = useAuth();
-
-  if (loading) {
-    return <div className="flex h-screen items-center justify-center">Carregando...</div>;
-  }
-
-  if (!authenticated) {
-    return <Navigate to="/login" />;
-  }
-
-  return children;
-};
+import { RoleRoute } from './components/RoleRoute';
 
 function App() {
   return (
@@ -38,9 +23,9 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <PrivateRoute>
+               <RoleRoute roles={['MANAGER', 'SELLER', 'INTERN']}>
                 <DashboardPage />
-              </PrivateRoute>
+              </RoleRoute>
             }
           />
 
@@ -48,9 +33,9 @@ function App() {
           <Route
             path="/users"
             element={
-              <PrivateRoute>
+              <RoleRoute roles={['MANAGER', 'ADMINISTRATOR']}>
                 <UsersPage />
-              </PrivateRoute>
+              </RoleRoute>
             }
           />
 
@@ -58,9 +43,9 @@ function App() {
           <Route
             path="/products"
             element={
-              <PrivateRoute>
+              <RoleRoute roles={['MANAGER', 'SELLER', 'INTERN']}>
                 <ProductsPage />
-              </PrivateRoute>
+              </RoleRoute>
             }
           />
 
@@ -68,9 +53,9 @@ function App() {
           <Route
             path="/clients"
             element={
-              <PrivateRoute>
+              <RoleRoute roles={['MANAGER', 'SELLER']}>
                 <ClientsPage />
-              </PrivateRoute>
+              </RoleRoute>
             }
           />
 
@@ -78,18 +63,18 @@ function App() {
           <Route
             path="/sales"
             element={
-              <PrivateRoute>
+              <RoleRoute roles={['MANAGER', 'SELLER', 'INTERN']}>
                 <SalesPage />
-              </PrivateRoute>
+              </RoleRoute>
             }
           />
           {/* ROTA DE DETALHES DA VENDA */}
           <Route
             path="/sales/:id"
             element={
-              <PrivateRoute>
+             <RoleRoute roles={['MANAGER', 'SELLER', 'INTERN']}>
                 <SaleDetailsPage />
-              </PrivateRoute>
+              </RoleRoute>
             }
           />
 
