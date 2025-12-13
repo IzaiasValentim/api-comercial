@@ -46,6 +46,12 @@ public class VendaService {
         this.itemRepository = itemRepository;
     }
 
+    public PurchaseResponseDTO buscarVendaPorId(UUID idVenda) {
+       Venda buscaVenda =  vendaRepository.findByIdAndIsDeleted(idVenda, false)
+                .orElseThrow(() -> new ResourceNotFoundException("Não encontramos venda cadastrada com esse id"));
+        return toResponseDTO(buscaVenda);
+    }
+
     public Page<PurchaseListDTO> findAllPaged(String cpf, String name, Integer statusStr, int page, int size) {
         Integer statusId = null;
         System.out.println("\n\n\n\n dsadsadsadasds"+statusStr);

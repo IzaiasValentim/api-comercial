@@ -13,6 +13,8 @@ import java.util.Optional;
 import java.util.UUID;
 @Repository
 public interface VendaRepository extends JpaRepository<Venda, UUID> {
+    Optional<Venda> findByIdAndIsDeleted(UUID id,  boolean deleted);
+
     // Busca a venda carregando os itens e o cliente de uma vez (Performance)
     @Query("SELECT v FROM Venda v JOIN FETCH v.itemCompras ic JOIN FETCH ic.item JOIN FETCH v.cliente WHERE v.id = :id")
     Optional<Venda> findByIdWithItems(UUID id);

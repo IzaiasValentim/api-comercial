@@ -7,6 +7,9 @@ import { DashboardPage } from './pages/DashboardPage';
 import { UsersPage } from './pages/UsersPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ClientsPage } from './pages/ClientsPage';
+import { SalesPage } from './pages/SalesPage';
+import { SaleDetailsPage } from './pages/SaleDetailsPage';
+
 
 // Componente para proteger rotas privadas
 const PrivateRoute = ({ children }) => {
@@ -32,43 +35,62 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Rota Privada */}
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/dashboard"
             element={
               <PrivateRoute>
                 <DashboardPage />
               </PrivateRoute>
-            } 
+            }
           />
 
           {/* ROTA DE USUÁRIOS */}
-          <Route 
-            path="/users" 
+          <Route
+            path="/users"
             element={
               <PrivateRoute>
                 <UsersPage />
               </PrivateRoute>
-            } 
+            }
           />
 
           {/* ROTA DE PRODUTOS */}
-          <Route 
-            path="/products" 
+          <Route
+            path="/products"
             element={
               <PrivateRoute>
                 <ProductsPage />
               </PrivateRoute>
-            } 
+            }
           />
 
           {/* ROTA PARA GESTÃO DE CLIENTES */}
-          <Route 
-            path="/clients" 
+          <Route
+            path="/clients"
             element={
               <PrivateRoute>
                 <ClientsPage />
               </PrivateRoute>
-            } 
+            }
+          />
+
+          {/* ROTA DE VENDAS */}
+          <Route
+            path="/sales"
+            element={
+              <PrivateRoute>
+                <SalesPage />
+              </PrivateRoute>
+            }
+          />
+          {/* ROTA DE DETALHES DA VENDA */}
+          <Route
+            path="/sales/:id"
+            element={
+              <PrivateRoute>
+                <SaleDetailsPage />
+              </PrivateRoute>
+            }
           />
 
           {/* Redirecionar raiz para dashboard (o PrivateRoute vai jogar pro login se precisar) */}

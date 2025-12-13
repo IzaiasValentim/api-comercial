@@ -22,7 +22,7 @@ public class VendaController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('SCOPE_SELLER') || hasAuthority('SCOPE_MANAGER')")
+    @PreAuthorize("hasAuthority('SCOPE_SELLER') || hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN')")
     public ResponseEntity<Page<PurchaseListDTO>> getAllPurchases(
             @RequestParam(required = false) String cpf,
             @RequestParam(required = false) String name,
@@ -31,6 +31,15 @@ public class VendaController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(vendaService.findAllPaged(cpf, name, status, page, size));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_SELLER') || hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN') ")
+    public ResponseEntity<?> getPurchaseById(@PathVariable UUID id) {
+        if (id == null) {
+            return new ResponseEntity<>("id inválido", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(vendaService.buscarVendaPorId(id), HttpStatus.OK);
     }
 
     @PostMapping
@@ -46,7 +55,7 @@ public class VendaController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('SCOPE_SELLER') || hasAuthority('SCOPE_MANAGER')")
+    @PreAuthorize("hasAuthority('SCOPE_SELLER') || hasAuthority('SCOPE_MANAGER') || hasAuthority('SCOPE_INTERN')")
     public ResponseEntity<Void> updateStatus(@PathVariable UUID id, @RequestBody VendaStatusDTO dto) {
         vendaService.updateStatus(id, dto);
         return ResponseEntity.ok().build();

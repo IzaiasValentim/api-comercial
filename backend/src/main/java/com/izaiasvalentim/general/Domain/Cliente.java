@@ -31,6 +31,14 @@ public class Cliente {
     @Column(nullable = false)
     private String payment;
 
+    /*
+    * TODO
+    *
+    * REFATORAR E DEIXAR A ASSOCIAÇÃO DE VENDA PARA CLIENTE
+    *
+    * REMOVER AQUIII
+    *
+    * */
     @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Venda> allPurchases;
